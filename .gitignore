@@ -1,0 +1,16 @@
+# Secretos y configuración local
+.env
+*.env
+app/Config/**/production*
+
+# Dependencias y archivos generados
+vendor/
+node_modules/
+writable/cache/
+writable/logs/
+writable/session/
+*.log
+
+# Basura del sistema
+.DS_Store
+Thumbs.db

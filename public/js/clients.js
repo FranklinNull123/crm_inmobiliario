@@ -17,7 +17,90 @@
       });
       const badge = (text, cls, icon) => `<span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${cls}">${icon ? `<i data-lucide="${icon}" class="h-3.5 w-3.5"></i>` : ''}${text}</span>`;
       const initials = (name) => name.split(' ').slice(0, 2).map((n) => n[0]).join('');
+      const escapeHTML = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;',
+      })[character]);
       let currentClient = null;
+
+      function openClientEditor(client) {
+        if (!client) return;
+        const modal = document.createElement('div');
+        modal.id = 'clientEditModal';
+        modal.className = 'fixed inset-0 z-50 flex items-center justify-center p-4';
+        modal.innerHTML = `
+          <button type="button" data-client-edit-close class="absolute inset-0 h-full w-full bg-slate-950/60 backdrop-blur-sm" aria-label="Cerrar formulario"></button>
+          <form class="relative w-full max-w-2xl space-y-5 rounded-2xl border border-gray-200 bg-white p-6 shadow-2xl dark:border-slate-700 dark:bg-slate-900">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <h2 class="text-lg font-semibold text-slate-900 dark:text-white">Editar Cliente</h2>
+                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Actualiza los datos de la ficha sin modificar sus pagos.</p>
+              </div>
+              <button type="button" data-client-edit-close aria-label="Cerrar" class="rounded-lg p-2 text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800"><i data-lucide="x" class="h-4 w-4"></i></button>
+            </div>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Nombre
+                <input name="name" required maxlength="120" value="${escapeHTML(client.name)}" class="mt-1.5 h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+              </label>
+              <label class="text-sm font-medium text-slate-700 dark:text-slate-200">DNI
+                <input name="dni" required maxlength="20" value="${escapeHTML(client.dni)}" class="mt-1.5 h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+              </label>
+              <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Correo electrónico
+                <input name="email" type="email" maxlength="120" value="${escapeHTML(client.email)}" class="mt-1.5 h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+              </label>
+              <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Teléfono principal
+                <input name="phone" maxlength="30" value="${escapeHTML(client.phone)}" class="mt-1.5 h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+              </label>
+              <label class="text-sm font-medium text-slate-700 dark:text-slate-200 sm:col-span-2">Dirección
+                <input name="address" maxlength="200" value="${escapeHTML(client.address)}" class="mt-1.5 h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+              </label>
+              <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Ocupación
+                <input name="occupation" maxlength="100" value="${escapeHTML(client.occupation)}" class="mt-1.5 h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+              </label>
+              <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Estado civil
+                <input name="civil_status" maxlength="50" value="${escapeHTML(client.civil)}" class="mt-1.5 h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+              </label>
+              <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Estado
+                <select name="status" class="mt-1.5 h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+                  ${['Cliente Activo', 'En Mora', 'Cancelado'].map((status) => `<option ${status === client.status ? 'selected' : ''}>${status}</option>`).join('')}
+                </select>
+              </label>
+            </div>
+            <p data-client-edit-message class="hidden rounded-lg border px-3 py-2 text-sm"></p>
+            <div class="flex justify-end gap-3 border-t border-gray-100 pt-4 dark:border-slate-800">
+              <button type="button" data-client-edit-close class="h-10 rounded-lg border border-gray-200 px-4 text-sm font-medium text-slate-700 dark:border-slate-700 dark:text-slate-200">Cancelar</button>
+              <button type="submit" class="h-10 rounded-lg bg-brand-600 px-4 text-sm font-semibold text-white hover:bg-brand-700">Guardar cambios</button>
+            </div>
+          </form>`;
+        document.body.appendChild(modal);
+        lucide.createIcons();
+        const close = () => modal.remove();
+        modal.querySelectorAll('[data-client-edit-close]').forEach((button) => button.addEventListener('click', close));
+        modal.querySelector('form').addEventListener('submit', async (event) => {
+          event.preventDefault();
+          const form = new FormData(event.currentTarget);
+          const message = modal.querySelector('[data-client-edit-message]');
+          const payload = { action: 'update', id: client.id };
+          form.forEach((value, key) => { payload[key] = String(value).trim(); });
+          try {
+            const response = await fetch('?api=clientes', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': leadCsrfToken },
+              body: JSON.stringify(payload),
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.message || 'No se pudo actualizar el cliente.');
+            close();
+            window.location.reload();
+          } catch (error) {
+            message.textContent = error.message || 'No se pudo actualizar el cliente.';
+            message.className = 'rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300';
+          }
+        });
+      }
 
       if (document.getElementById('clientsTable')) {
         const clientSearch = document.getElementById('clientSearch');
@@ -41,13 +124,17 @@
               <td class="px-5 py-3">
                 <div class="flex justify-end gap-1">
                   <a href="?view=detalle&id=${c.id}" title="Ver detalle" class="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-gray-100 hover:text-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500/40 dark:hover:bg-slate-800 dark:hover:text-brand-400"><i data-lucide="eye" class="h-4 w-4"></i><span class="sr-only">Ver detalle de ${c.name}</span></a>
-                  ${actionBtn('pencil', 'Editar', 'hover:text-amber-600 dark:hover:text-amber-400')}
+                  <button type="button" data-edit-client="${c.id}" title="Editar" class="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-gray-100 hover:text-amber-600 focus:outline-none focus:ring-2 focus:ring-brand-500/40 dark:hover:bg-slate-800 dark:hover:text-amber-400"><i data-lucide="pencil" class="h-4 w-4"></i><span class="sr-only">Editar ${escapeHTML(c.name)}</span></button>
                 </div>
               </td>
             </tr>`).join('')
             : '<tr><td colspan="7" class="px-5 py-10 text-center text-sm text-slate-500 dark:text-slate-400">No se encontraron clientes.</td></tr>';
           lucide.createIcons();
         }
+        clientsTable.addEventListener('click', (event) => {
+          const button = event.target.closest('[data-edit-client]');
+          if (button) openClientEditor(clients.find((client) => client.id === Number(button.dataset.editClient)));
+        });
         clientSearch.addEventListener('input', renderClients);
         renderClients();
       }
@@ -287,6 +374,7 @@
           // Sin enrutador SPA: "Volver" regresa al listado por URL real.
           window.location.href = '?view=clientes';
         });
+        document.getElementById('editClientBtn')?.addEventListener('click', () => openClientEditor(currentClient));
 
         document.getElementById('addClientContactBtn')?.addEventListener('click', async () => {
           if (!currentClient) return;
@@ -345,4 +433,3 @@
         if (detailId) openClient(detailId);
       }
     }
-

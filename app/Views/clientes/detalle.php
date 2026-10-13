@@ -5,7 +5,7 @@
       <i data-lucide="arrow-left" class="h-4 w-4"></i>Volver
     </button>
     <div class="flex items-center gap-2">
-      <button type="button" class="inline-flex h-10 items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 text-sm font-medium text-slate-700 hover:bg-gray-50 focus:outline-none focus:ring-4 focus:ring-brand-500/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800">
+      <button id="editClientBtn" type="button" class="inline-flex h-10 items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 text-sm font-medium text-slate-700 hover:bg-gray-50 focus:outline-none focus:ring-4 focus:ring-brand-500/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800">
         <i data-lucide="pencil" class="h-4 w-4"></i>Editar Cliente
       </button>
       <div class="relative">

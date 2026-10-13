@@ -202,6 +202,7 @@ if ($api !== null && $_SERVER['REQUEST_METHOD'] === 'POST') {
         'recordatorios' => ['crm', 'editar'],
         'documentos' => ['clientes', 'editar'],
         'contactos' => ['clientes', 'editar'],
+        'clientes' => ['clientes', 'editar'],
         'contratos' => ['clientes', 'editar'],
     ];
     if (!isset($apiPermissions[$api])) {
@@ -398,6 +399,41 @@ if ($api !== null && $_SERVER['REQUEST_METHOD'] === 'POST') {
             error_log('[Contactos] ' . $exception->getMessage());
             http_response_code(409);
             echo json_encode(['ok' => false, 'message' => 'No se pudo guardar el contacto.'], JSON_THROW_ON_ERROR);
+        }
+        exit;
+    }
+
+    if ($api === 'clientes') {
+        require_once BASE_PATH . '/app/Models/ClienteModel.php';
+        require_once BASE_PATH . '/app/Controllers/ClienteController.php';
+        $clienteController = new ClienteController(new ClienteModel($pdo));
+        header('Content-Type: application/json; charset=utf-8');
+        try {
+            if (($payload['action'] ?? '') !== 'update') {
+                http_response_code(400);
+                echo json_encode(['ok' => false, 'message' => 'Acción de clientes no válida.'], JSON_THROW_ON_ERROR);
+                exit;
+            }
+
+            $updated = $clienteController->actualizar($payload['id'] ?? null, $payload, $advisorScopeUserId);
+            if (!$updated) {
+                http_response_code(404);
+                echo json_encode(['ok' => false, 'message' => 'No se encontró el cliente o no tienes acceso.'], JSON_THROW_ON_ERROR);
+                exit;
+            }
+            cms_audit($pdo, 'cliente_actualizado', 'clientes', (string) $payload['id'], null, [
+                'nombre' => $payload['name'] ?? '',
+                'dni' => $payload['dni'] ?? '',
+                'estado' => $payload['status'] ?? '',
+            ]);
+            echo json_encode(['ok' => true], JSON_THROW_ON_ERROR);
+        } catch (InvalidArgumentException $exception) {
+            http_response_code(422);
+            echo json_encode(['ok' => false, 'message' => $exception->getMessage()], JSON_THROW_ON_ERROR);
+        } catch (PDOException $exception) {
+            error_log('[Clientes] ' . $exception->getMessage());
+            http_response_code(409);
+            echo json_encode(['ok' => false, 'message' => 'No se pudo actualizar el cliente. Verifica que el DNI no esté repetido.'], JSON_THROW_ON_ERROR);
         }
         exit;
     }

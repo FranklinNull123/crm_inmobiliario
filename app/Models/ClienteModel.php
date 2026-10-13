@@ -115,6 +115,68 @@ SQL;
         return null;
     }
 
+    public function actualizar(int $id, array $data, ?int $userId = null): bool
+    {
+        $sql = 'UPDATE clientes SET nombre = :name, dni = :dni, email = :email, direccion = :address, ocupacion = :occupation, estado_civil = :civil_status, estado = :status';
+        $params = [
+            'id' => $id,
+            'name' => $data['name'],
+            'dni' => $data['dni'],
+            'email' => $data['email'],
+            'address' => $data['address'],
+            'occupation' => $data['occupation'],
+            'civil_status' => $data['civil_status'],
+            'status' => $data['status'],
+        ];
+
+        if ($userId !== null) {
+            $sql .= ' WHERE clientes.id = :id AND EXISTS (SELECT 1 FROM asesores a WHERE a.id = clientes.id_asesor AND a.id_usuario = :user_id)';
+            $params['user_id'] = $userId;
+        } else {
+            $sql .= ' WHERE clientes.id = :id';
+        }
+
+        $this->pdo->beginTransaction();
+        try {
+            $statement = $this->pdo->prepare($sql);
+            $statement->execute($params);
+
+            $existsSql = 'SELECT 1 FROM clientes c WHERE c.id = :id';
+            $existsParams = ['id' => $id];
+            if ($userId !== null) {
+                $existsSql .= ' AND EXISTS (SELECT 1 FROM asesores a WHERE a.id = c.id_asesor AND a.id_usuario = :user_id)';
+                $existsParams['user_id'] = $userId;
+            }
+            $exists = $this->pdo->prepare($existsSql);
+            $exists->execute($existsParams);
+            if ($exists->fetchColumn() === false) {
+                $this->pdo->rollBack();
+                return false;
+            }
+
+            if ($data['phone'] !== '') {
+                $contact = $this->pdo->prepare('SELECT id_contacto FROM contactos WHERE id_cliente = :id AND es_principal = 1 ORDER BY id_contacto LIMIT 1');
+                $contact->execute(['id' => $id]);
+                $contactId = $contact->fetchColumn();
+                if ($contactId === false) {
+                    $insertContact = $this->pdo->prepare('INSERT INTO contactos (id_cliente, tipo_contacto, telefono, es_principal) VALUES (:id, :type, :phone, 1)');
+                    $insertContact->execute(['id' => $id, 'type' => 'Teléfono', 'phone' => $data['phone']]);
+                } else {
+                    $updateContact = $this->pdo->prepare('UPDATE contactos SET telefono = :phone WHERE id_contacto = :contact_id AND id_cliente = :id');
+                    $updateContact->execute(['phone' => $data['phone'], 'contact_id' => (int) $contactId, 'id' => $id]);
+                }
+            }
+
+            $this->pdo->commit();
+            return true;
+        } catch (Throwable $exception) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            throw $exception;
+        }
+    }
+
     public function getDocumentos(int $clienteId): array
     {
         $sql = <<<'SQL'

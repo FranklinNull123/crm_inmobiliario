@@ -16,11 +16,11 @@ SELECT
 	COALESCE(NULLIF(TRIM(cl.estado_lead), ''), 'Sin estado') AS status,
 	ca.nombre AS campaign,
 	ch.nombre AS channel,
-	u.nombres AS advisor
+	a.nombre AS advisor
 FROM clientes_leads AS cl
 LEFT JOIN campanas AS ca ON ca.id_campana = cl.id_campana
 LEFT JOIN canales AS ch ON ch.id_canal = ca.id_canal
-LEFT JOIN usuarios AS u ON u.id_usuario = cl.id_asesor
+LEFT JOIN asesores AS a ON a.id = cl.id_asesor
 ORDER BY cl.id_cliente DESC
 SQL;
 
@@ -94,7 +94,11 @@ SQL;
 
 	public function getAdvisors(): array
 	{
-		$sql = "SELECT u.id_usuario AS id, u.nombres AS name FROM usuarios u JOIN usuario_roles ur ON ur.id_usuario = u.id_usuario JOIN roles r ON r.id = ur.id_rol WHERE u.estado = 1 AND r.activo = 1 AND r.nombre = 'asesor' ORDER BY u.nombres";
+		$sql = 'SELECT u.id_usuario AS id, u.nombres AS name
+			FROM asesores a
+			JOIN usuarios u ON u.id_usuario = a.id_usuario
+			WHERE a.estado = 1 AND u.estado = 1
+			ORDER BY u.nombres';
 
 		return $this->pdo->query($sql)->fetchAll();
 	}

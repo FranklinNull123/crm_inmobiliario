@@ -50,12 +50,13 @@ FROM leads AS l
 LEFT JOIN campanas AS ca ON ca.id_campana = l.id_campana
 LEFT JOIN canales AS ch ON ch.id_canal = ca.id_canal
 LEFT JOIN usuarios AS u ON u.id_usuario = l.id_usuario_asignado
+WHERE l.id_cliente_convertido IS NULL
 ORDER BY l.id DESC
 SQL;
 
 		try {
 			if ($userId !== null) {
-				$sql = str_replace('ORDER BY l.id DESC', 'WHERE l.id_usuario_asignado = :user_id ORDER BY l.id DESC', $sql);
+				$sql = str_replace('ORDER BY l.id DESC', 'AND l.id_usuario_asignado = :user_id ORDER BY l.id DESC', $sql);
 			}
 			$statement = $this->pdo->prepare($sql);
 			$statement->execute($userId === null ? [] : ['user_id' => $userId]);

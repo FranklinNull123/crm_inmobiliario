@@ -29,6 +29,187 @@
     [data-invalid="true"] .sep-input:focus { box-shadow: 0 0 0 4px rgb(244 63 94 / .2); }
     [data-invalid="true"] .sep-error { display: flex; }
 
+    /* Agenda: keep the calendar and task panel legible in both themes. */
+    #agendaView {
+      --agenda-surface: #ffffff;
+      --agenda-muted-surface: #f8fafc;
+      --agenda-border: #e2e8f0;
+      --agenda-text: #0f172a;
+      --agenda-muted: #64748b;
+    }
+    #agendaView > section:first-child > div {
+      transition: transform 180ms ease, box-shadow 180ms ease;
+    }
+    #agendaView > section:first-child > div:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 28px rgb(15 23 42 / .08);
+    }
+    #agendaView .fc {
+      color: var(--agenda-text);
+      font-size: .875rem;
+    }
+    #agendaView .fc .fc-toolbar {
+      align-items: center;
+      gap: .75rem;
+      margin-bottom: 1.25rem;
+    }
+    #agendaView .fc .fc-toolbar-title {
+      color: var(--agenda-text);
+      font-size: clamp(1.25rem, 2vw, 1.65rem);
+      font-weight: 700;
+      text-transform: capitalize;
+    }
+    #agendaView .fc .fc-button {
+      border: 1px solid #cbd5e1;
+      border-radius: .55rem;
+      background: #f8fafc;
+      color: #334155;
+      font-weight: 600;
+      box-shadow: none;
+      transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+    }
+    #agendaView .fc .fc-button:hover,
+    #agendaView .fc .fc-button:focus {
+      border-color: #93c5fd;
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+    #agendaView .fc .fc-button-primary:not(:disabled).fc-button-active,
+    #agendaView .fc .fc-button-primary:not(:disabled):active {
+      border-color: #2563eb;
+      background: #2563eb;
+      color: #fff;
+    }
+    #agendaView .fc .fc-col-header-cell {
+      background: var(--agenda-muted-surface);
+      color: var(--agenda-muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    #agendaView .fc .fc-col-header-cell-cushion {
+      padding: .7rem .35rem;
+    }
+    #agendaView .fc .fc-daygrid-day,
+    #agendaView .fc .fc-timegrid-slot,
+    #agendaView .fc .fc-list-day-cushion {
+      background: var(--agenda-surface);
+    }
+    #agendaView .fc .fc-daygrid-day:hover {
+      background: #f8fbff;
+    }
+    #agendaView .fc .fc-daygrid-day-number,
+    #agendaView .fc .fc-list-event-time,
+    #agendaView .fc .fc-list-event-title {
+      color: var(--agenda-text);
+    }
+    #agendaView .fc .fc-day-other .fc-daygrid-day-number {
+      color: #94a3b8;
+    }
+    #agendaView .fc .fc-day-today {
+      background: #eff6ff;
+    }
+    #agendaView .fc .fc-day-today .fc-daygrid-day-number {
+      color: #1d4ed8;
+      font-weight: 800;
+    }
+    #agendaView .fc .fc-list-sticky .fc-list-day > * {
+      background: var(--agenda-muted-surface);
+      color: var(--agenda-text);
+    }
+    #agendaView .fc .fc-list-event:hover td {
+      background: #f8fbff;
+    }
+    #agendaView .fc .fc-event {
+      border: 0;
+      border-radius: .35rem;
+      padding: .1rem .25rem;
+      font-weight: 600;
+    }
+    #agendaView #agendaTaskForm input,
+    #agendaView #agendaTaskForm select,
+    #agendaView #agendaTaskForm textarea {
+      transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+    }
+    #agendaView #agendaTaskForm input:focus,
+    #agendaView #agendaTaskForm select:focus,
+    #agendaView #agendaTaskForm textarea:focus {
+      border-color: #60a5fa;
+      box-shadow: 0 0 0 3px rgb(59 130 246 / .18);
+      outline: none;
+    }
+    #agendaView aside {
+      border-color: #bfdbfe;
+      background: linear-gradient(145deg, #eff6ff 0%, #f8fbff 100%);
+    }
+    .dark #agendaView {
+      --agenda-surface: #0f172a;
+      --agenda-muted-surface: #172033;
+      --agenda-border: #334155;
+      --agenda-text: #f8fafc;
+      --agenda-muted: #cbd5e1;
+    }
+    .dark #agendaView aside {
+      border-color: #1e40af;
+      background: linear-gradient(145deg, #172554 0%, #0f172a 100%);
+    }
+    .dark #agendaView > section:first-child > div:hover {
+      box-shadow: 0 14px 28px rgb(0 0 0 / .25);
+    }
+    .dark #agendaView .fc .fc-button {
+      border-color: #475569;
+      background: #1e293b;
+      color: #e2e8f0;
+    }
+    .dark #agendaView .fc .fc-button:hover,
+    .dark #agendaView .fc .fc-button:focus {
+      border-color: #60a5fa;
+      background: #1e3a8a;
+      color: #dbeafe;
+    }
+    .dark #agendaView .fc .fc-col-header-cell,
+    .dark #agendaView .fc .fc-list-day-cushion {
+      background: var(--agenda-muted-surface);
+      color: var(--agenda-muted);
+    }
+    .dark #agendaView .fc .fc-daygrid-day:hover,
+    .dark #agendaView .fc .fc-list-event:hover td {
+      background: #172554;
+    }
+    .dark #agendaView .fc .fc-day-today {
+      background: #172554;
+    }
+    .dark #agendaView .fc .fc-day-today .fc-daygrid-day-number {
+      color: #93c5fd;
+    }
+    .dark #agendaView .fc .fc-day-other .fc-daygrid-day-number {
+      color: #64748b;
+    }
+    .dark #agendaView .fc .fc-list-event-time,
+    .dark #agendaView .fc .fc-list-event-title {
+      color: var(--agenda-text);
+    }
+    @media (max-width: 640px) {
+      #agendaView .fc .fc-toolbar {
+        flex-wrap: wrap;
+      }
+      #agendaView .fc .fc-toolbar-title {
+        order: -1;
+        width: 100%;
+        text-align: center;
+      }
+      #agendaView .fc .fc-toolbar-chunk {
+        display: flex;
+        justify-content: center;
+      }
+      #agendaView .fc .fc-button {
+        padding: .4rem .55rem;
+      }
+      #agendaView .fc .fc-daygrid-day-number {
+        padding: .35rem;
+      }
+    }
+
     :root {
       color-scheme: light;
       -webkit-font-smoothing: antialiased;

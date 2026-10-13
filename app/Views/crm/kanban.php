@@ -3,17 +3,17 @@ $leadFeedback = $leadFeedback ?? null;
 $csrfToken = $csrfToken ?? '';
 $campaigns = $campaigns ?? [];
 $advisors = $advisors ?? [];
+$projects = $projects ?? [];
 ?>
 <!-- CRM Kanban -->
         <div id="crmView">
           <div class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div class="grid gap-4 sm:grid-cols-2">
-            <div class="sm:col-span-2">
+            <div class="max-w-xl">
               <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Gestión de Leads</h1>
               <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Registra prospectos, guarda sus datos de contacto y conviértelos en clientes cuando estén validados.</p>
             </div>
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <div class="relative sm:w-72">
+              <div class="relative w-full sm:w-72">
                 <label for="leadSearch" class="sr-only">Buscar leads</label>
                 <i data-lucide="search" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"></i>
                 <input id="leadSearch" type="search" placeholder="Buscar por nombre, estado o campaña" autocomplete="off" class="h-10 w-full rounded-lg border border-gray-200 bg-white pl-9 pr-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/20 dark:border-slate-700 dark:bg-slate-900 dark:text-white">
@@ -94,13 +94,19 @@ $advisors = $advisors ?? [];
                   </div>
                   <button type="button" data-lead-close aria-label="Cerrar" class="rounded-lg p-2 text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800"><i data-lucide="x" class="h-4 w-4"></i></button>
                 </div>
-                <div>
+                <div class="grid gap-4 sm:grid-cols-2">
+                <div class="sm:col-span-2">
                   <label for="leadName" class="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Nombre (obligatorio)</label>
                   <input id="leadName" name="name" type="text" maxlength="100" required autocomplete="name" class="h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
                 </div>
-                <div>
+                <div class="sm:col-span-2">
                   <label for="leadPhone" class="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Teléfono</label>
-                  <input id="leadPhone" name="phone" type="tel" maxlength="30" autocomplete="tel" placeholder="+51 999 999 999" class="h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+                  <div class="flex gap-2">
+                    <select id="leadCountry" aria-label="País del teléfono" class="h-10 w-32 shrink-0 rounded-lg border border-gray-200 bg-white px-2 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+                      <option value="+51" selected>PE +51</option><option value="+1">US +1</option><option value="+52">MX +52</option><option value="+34">ES +34</option><option value="+57">CO +57</option><option value="+56">CL +56</option><option value="+54">AR +54</option>
+                    </select>
+                    <input id="leadPhone" name="phone" type="tel" maxlength="30" autocomplete="tel" placeholder="999 999 999" class="h-10 min-w-0 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+                  </div>
                 </div>
                 <div>
                   <label for="leadEmail" class="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Correo electrónico</label>
@@ -108,7 +114,12 @@ $advisors = $advisors ?? [];
                 </div>
                 <div>
                   <label for="leadProject" class="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Proyecto de interés</label>
-                  <input id="leadProject" name="project" type="text" maxlength="120" placeholder="Proyecto o inmueble" class="h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+                  <select id="leadProject" name="project_id" class="h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+                    <option value="">Sin proyecto</option>
+                    <?php foreach ($projects as $project): ?>
+                      <option value="<?= (int) $project['id'] ?>"><?= htmlspecialchars((string) $project['name'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></option>
+                    <?php endforeach; ?>
+                  </select>
                 </div>
                 <div>
                   <label for="leadInterest" class="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Nivel de interés</label>

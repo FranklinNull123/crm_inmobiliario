@@ -137,6 +137,9 @@
 
       const leadModal = document.getElementById('leadModal');
       const leadName = document.getElementById('leadName');
+      const leadForm = document.getElementById('leadForm');
+      const leadCountry = document.getElementById('leadCountry');
+      const leadPhone = document.getElementById('leadPhone');
       const openLeadModal = () => {
         leadModal.classList.remove('hidden');
         lucide.createIcons();
@@ -148,6 +151,10 @@
       });
       leadModal.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') leadModal.classList.add('hidden');
+      });
+      leadForm.addEventListener('submit', () => {
+        const phone = leadPhone.value.trim().replace(/^\+\d+\s*/, '');
+        leadPhone.value = phone === '' ? '' : `${leadCountry.value} ${phone}`;
       });
 
       renderBoard();

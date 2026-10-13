@@ -678,11 +678,12 @@ switch ($view) {
 
     case 'crm':
         require_once BASE_PATH . '/app/Models/LeadModel.php';
+        require_once BASE_PATH . '/app/Models/ProyectoModel.php';
         require_once BASE_PATH . '/app/Controllers/CrmController.php';
         require_once BASE_PATH . '/app/Controllers/LeadController.php';
 
         $leadController = new LeadController(new LeadModel($pdo));
-        $crmController = new CrmController(new LeadModel($pdo));
+        $crmController = new CrmController(new LeadModel($pdo), new ProyectoModel($pdo));
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $contentType = strtolower($_SERVER['CONTENT_TYPE'] ?? '');
@@ -790,6 +791,7 @@ switch ($view) {
             $leads = $crmData['leads'];
             $campaigns = $crmData['campaigns'];
             $advisors = $crmData['advisors'];
+            $projects = $crmData['projects'];
         } catch (PDOException $exception) {
             error_log('[CrmController] ' . $exception->getMessage());
             $leadError = 'No fue posible cargar los datos del CRM.';
@@ -1049,6 +1051,7 @@ require $viewFile;
     const leads = <?= json_encode($leads ?? [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR) ?>;
     const leadError = <?= json_encode($leadError ?? null, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR) ?>;
     const leadCsrfToken = <?= json_encode($csrfToken, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR) ?>;
+    const crmProjects = <?= json_encode($projects ?? [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR) ?>;
     const projectRecords = <?= json_encode($projectData['projects'] ?? [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR) ?>;
     const projectStageRecords = <?= json_encode($projectData['stages'] ?? [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR) ?>;
     const projectStatusOptions = <?= json_encode($projectData['statuses'] ?? [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR) ?>;

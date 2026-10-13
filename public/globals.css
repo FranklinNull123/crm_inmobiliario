@@ -193,6 +193,33 @@
       #agendaView .fc .fc-toolbar {
         flex-wrap: wrap;
       }
+
+      /* CRM: prevent the Kanban and lead dialog from collapsing on narrow screens. */
+      #crmView {
+        min-width: 0;
+      }
+      #crmView > .mb-6 {
+        align-items: stretch;
+      }
+      #crmView #kanbanBoard {
+        min-height: 20rem;
+        padding-bottom: 1rem;
+      }
+      #crmView #leadModal {
+        overflow-y: auto;
+      }
+      #crmView #leadModal > div {
+        min-height: 100%;
+      }
+      #crmView #leadForm {
+        max-height: calc(100dvh - 2rem);
+        overflow-y: auto;
+      }
+      @media (min-width: 1024px) {
+        #crmView > .mb-6 {
+          align-items: flex-end;
+        }
+      }
       #agendaView .fc .fc-toolbar-title {
         order: -1;
         width: 100%;

@@ -37,13 +37,13 @@ final class LeadController
 
 		$phone = trim((string) ($input['phone'] ?? ''));
 		$email = trim((string) ($input['email'] ?? ''));
-		$project = trim((string) ($input['project'] ?? ''));
+		$projectId = $this->optionalPositiveId($input['project_id'] ?? null, 'proyecto');
 		$interest = (string) ($input['interest'] ?? 'Bajo');
 		if (!in_array($interest, ['Bajo', 'Medio', 'Alto', 'Urgente'], true)) {
 			$interest = 'Bajo';
 		}
-		if (mb_strlen($phone, 'UTF-8') > 30 || mb_strlen($email, 'UTF-8') > 120 || mb_strlen($project, 'UTF-8') > 120) {
-			throw new InvalidArgumentException('Los datos de contacto o proyecto exceden la longitud permitida.');
+		if (mb_strlen($phone, 'UTF-8') > 30 || mb_strlen($email, 'UTF-8') > 120) {
+			throw new InvalidArgumentException('Los datos de contacto exceden la longitud permitida.');
 		}
 		if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
 			throw new InvalidArgumentException('El correo electrónico no es válido.');
@@ -52,7 +52,7 @@ final class LeadController
 		$campaignId = $this->optionalPositiveId($input['campaign_id'] ?? null, 'campaña');
 		$advisorId = $forcedAdvisorId ?? $this->optionalPositiveId($input['advisor_id'] ?? null, 'asesor');
 
-		return $this->leadModel->create($name, $phone, $email, $project, $interest, $campaignId, $advisorId);
+		return $this->leadModel->create($name, $phone, $email, $projectId, $interest, $campaignId, $advisorId);
 	}
 
 	public function changeStatus(mixed $id, mixed $status, ?int $userId = null): bool

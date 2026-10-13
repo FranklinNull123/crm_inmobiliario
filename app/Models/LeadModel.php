@@ -33,6 +33,8 @@ SQL;
 SELECT
 	l.id,
 	l.nombre AS name,
+	COALESCE(l.telefono, '') AS phone,
+	COALESCE(l.email, '') AS email,
 	COALESCE(NULLIF(TRIM(l.etapa), ''), 'Nuevo Lead') AS status,
 	COALESCE(NULLIF(TRIM(l.etapa), ''), 'nuevo') AS stage,
 	l.id_cliente_convertido AS client_id,
@@ -75,6 +77,8 @@ SQL;
 				'status' => $status,
 				'stage' => $stage,
 				'name' => (string) ($row['name'] ?? ''),
+				'phone' => (string) ($row['phone'] ?? ''),
+				'email' => (string) ($row['email'] ?? ''),
 				'project' => (string) ($row['project'] ?? ''),
 				'level' => (string) ($row['level'] ?? 'Bajo'),
 				'channel' => (string) ($row['channel'] ?? 'whatsapp'),
@@ -104,16 +108,20 @@ SQL;
 		return $this->pdo->query($sql)->fetchAll();
 	}
 
-	public function create(string $name, ?int $campaignId, ?int $advisorId): int
+	public function create(string $name, string $phone, string $email, string $project, string $interest, ?int $campaignId, ?int $advisorId): int
 	{
 		$sql = <<<'SQL'
-		INSERT INTO leads (id_campana, id_usuario_asignado, nombre, nivel_interes, etapa)
-		VALUES (:campaign_id, :advisor_id, :name, 'Bajo', 'Nuevo Lead')
+		INSERT INTO leads (id_campana, id_usuario_asignado, nombre, telefono, email, proyecto_interes, nivel_interes, etapa)
+		VALUES (:campaign_id, :advisor_id, :name, :phone, :email, :project, :interest, 'Nuevo Lead')
 SQL;
 		$statement = $this->pdo->prepare($sql);
 		$statement->bindValue(':advisor_id', $advisorId, $advisorId === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
 		$statement->bindValue(':campaign_id', $campaignId, $campaignId === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
 		$statement->bindValue(':name', $name, PDO::PARAM_STR);
+		$statement->bindValue(':phone', $phone, PDO::PARAM_STR);
+		$statement->bindValue(':email', $email, PDO::PARAM_STR);
+		$statement->bindValue(':project', $project, PDO::PARAM_STR);
+		$statement->bindValue(':interest', $interest, PDO::PARAM_STR);
 		$statement->execute();
 
 		return (int) $this->pdo->lastInsertId();

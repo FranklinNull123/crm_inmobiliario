@@ -4,7 +4,7 @@
         <div>
             <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Clientes</h1>
             <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Consulta la ficha, propiedades y estado de cuenta de cada cliente.</p>
-            <p class="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-brand-700 dark:text-brand-300"><i data-lucide="info" class="h-3.5 w-3.5"></i>Los clientes se crean al convertir un lead validado.</p>
+            <p class="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-brand-700 dark:text-brand-300"><i data-lucide="info" class="h-3.5 w-3.5"></i>Los clientes aparecen aquí después de convertir un lead validado.</p>
         </div>
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div class="relative sm:w-72">
@@ -16,7 +16,7 @@
                 <i data-lucide="file-signature" class="h-4 w-4"></i>Nueva Separación
             </button>
             <a href="?view=crm" class="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-brand-600 px-4 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-500/30">
-                <i data-lucide="user-plus" class="h-4 w-4"></i>Convertir Lead
+                <i data-lucide="users" class="h-4 w-4"></i>Ir a Leads
             </a>
         </div>
     </div>

@@ -52,14 +52,14 @@ $projects = $projects ?? [];
                   <?php endif; ?>
                   <?php if ($leadClientId === null): ?>
                     <details class="mt-4 border-t border-gray-100 pt-3 dark:border-slate-800">
-                      <summary class="cursor-pointer text-sm font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-400">Convertir a cliente</summary>
+                      <summary class="cursor-pointer text-sm font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-400">¿Convertir este lead en cliente?</summary>
                       <form method="post" action="?view=crm" class="mt-3 space-y-3">
                         <input type="hidden" name="action" value="convert_to_client">
                         <input type="hidden" name="id" value="<?= $leadId ?>">
                         <input type="hidden" name="_csrf" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">
                         <div>
                           <label for="lead-dni-<?= $leadId ?>" class="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-200">DNI o documento <span class="text-rose-500">*</span></label>
-                          <input id="lead-dni-<?= $leadId ?>" name="dni" type="text" maxlength="20" required class="h-9 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+                          <input id="lead-dni-<?= $leadId ?>" name="dni" type="text" maxlength="20" value="<?= htmlspecialchars((string) ($lead['dni'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" required class="h-9 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
                         </div>
                         <div>
                           <label for="lead-phone-<?= $leadId ?>" class="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-200">Teléfono</label>
@@ -69,7 +69,7 @@ $projects = $projects ?? [];
                           <label for="lead-email-<?= $leadId ?>" class="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-200">Correo electrónico</label>
                           <input id="lead-email-<?= $leadId ?>" name="email" type="email" maxlength="120" value="<?= htmlspecialchars((string) ($lead['email'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" class="h-9 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
                         </div>
-                        <button type="submit" class="w-full rounded-lg bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-500/30">Crear ficha de cliente</button>
+                        <button type="submit" class="w-full rounded-lg bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-500/30">Sí, convertir a cliente</button>
                       </form>
                     </details>
                   <?php endif; ?>
@@ -95,6 +95,10 @@ $projects = $projects ?? [];
                   <button type="button" data-lead-close aria-label="Cerrar" class="rounded-lg p-2 text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800"><i data-lucide="x" class="h-4 w-4"></i></button>
                 </div>
                 <div class="grid gap-4 sm:grid-cols-2">
+                <div class="sm:col-span-2">
+                  <label for="leadDni" class="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">DNI o documento <span class="text-xs font-normal text-slate-500">(opcional hasta convertir)</span></label>
+                  <input id="leadDni" name="dni" type="text" maxlength="20" inputmode="numeric" placeholder="Ej. 45123456" class="h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+                </div>
                 <div class="sm:col-span-2">
                   <label for="leadName" class="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Nombre (obligatorio)</label>
                   <input id="leadName" name="name" type="text" maxlength="100" required autocomplete="name" class="h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white">

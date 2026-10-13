@@ -33,6 +33,7 @@ SQL;
 SELECT
 	l.id,
 	l.nombre AS name,
+	COALESCE(l.dni, '') AS dni,
 	COALESCE(l.telefono, '') AS phone,
 	COALESCE(l.email, '') AS email,
 	COALESCE(NULLIF(TRIM(l.etapa), ''), 'Nuevo Lead') AS status,
@@ -79,6 +80,7 @@ SQL;
 				'status' => $status,
 				'stage' => $stage,
 				'name' => (string) ($row['name'] ?? ''),
+				'dni' => (string) ($row['dni'] ?? ''),
 				'phone' => (string) ($row['phone'] ?? ''),
 				'email' => (string) ($row['email'] ?? ''),
 				'project' => (string) ($row['project'] ?? ''),
@@ -111,7 +113,7 @@ SQL;
 		return $this->pdo->query($sql)->fetchAll();
 	}
 
-	public function create(string $name, string $phone, string $email, ?int $projectId, string $interest, ?int $campaignId, ?int $advisorId): int
+	public function create(string $name, string $dni, string $phone, string $email, ?int $projectId, string $interest, ?int $campaignId, ?int $advisorId): int
 	{
 		if ($projectId !== null) {
 			$project = $this->pdo->prepare('SELECT 1 FROM proyectos WHERE id = :id AND estado <> :archived LIMIT 1');
@@ -122,13 +124,14 @@ SQL;
 		}
 
 		$sql = <<<'SQL'
-		INSERT INTO leads (id_campana, id_usuario_asignado, nombre, telefono, email, id_proyecto, nivel_interes, etapa)
-		VALUES (:campaign_id, :advisor_id, :name, :phone, :email, :project_id, :interest, 'Nuevo Lead')
+		INSERT INTO leads (id_campana, id_usuario_asignado, nombre, dni, telefono, email, id_proyecto, nivel_interes, etapa)
+		VALUES (:campaign_id, :advisor_id, :name, :dni, :phone, :email, :project_id, :interest, 'Nuevo Lead')
 SQL;
 		$statement = $this->pdo->prepare($sql);
 		$statement->bindValue(':advisor_id', $advisorId, $advisorId === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
 		$statement->bindValue(':campaign_id', $campaignId, $campaignId === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
 		$statement->bindValue(':name', $name, PDO::PARAM_STR);
+		$statement->bindValue(':dni', $dni, PDO::PARAM_STR);
 		$statement->bindValue(':phone', $phone, PDO::PARAM_STR);
 		$statement->bindValue(':email', $email, PDO::PARAM_STR);
 		$statement->bindValue(':project_id', $projectId, $projectId === null ? PDO::PARAM_NULL : PDO::PARAM_INT);

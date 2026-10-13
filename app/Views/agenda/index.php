@@ -36,7 +36,12 @@ $escape = static fn (mixed $value): string => htmlspecialchars((string) $value, 
       <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300"><?= count($agenda) ?> eventos</span>
     </div>
 
-    <div class="divide-y divide-slate-100 dark:divide-slate-800">
+    <div class="p-4 sm:p-6">
+      <div id="agendaCalendar" class="min-h-[620px]" aria-label="Calendario de agenda"></div>
+      <p class="mt-3 text-xs text-slate-500 dark:text-slate-400">Calendario de consulta. Los eventos se administran desde Recordatorios.</p>
+    </div>
+
+    <div class="border-t border-slate-100 divide-y divide-slate-100 dark:border-slate-800 dark:divide-slate-800">
       <?php foreach ($agenda as $item): ?>
         <article class="flex flex-col gap-3 px-6 py-4 md:flex-row md:items-center md:justify-between">
           <div class="flex items-start gap-3">

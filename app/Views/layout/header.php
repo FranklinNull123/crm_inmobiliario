@@ -29,6 +29,7 @@ foreach (array_slice(preg_split('/\s+/u', trim((string) ($headerUser['name'] ?? 
   </script>
 
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css">
   <script>
     tailwind.config = {
       darkMode: 'class',

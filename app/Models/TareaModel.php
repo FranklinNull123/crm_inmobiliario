@@ -11,7 +11,7 @@ final class TareaModel
     {
         try {
             $pendientes = (int) $this->pdo->query("SELECT COUNT(*) FROM leads WHERE etapa IS NOT NULL AND etapa NOT IN ('Venta Cerrada', 'Rechazado')")->fetchColumn();
-            $hoy = (int) $this->pdo->query("SELECT COUNT(*) FROM recordatorios WHERE DATE(fecha) = CURDATE() OR estado = 'Pendiente'")->fetchColumn();
+            $hoy = (int) $this->pdo->query("SELECT COUNT(*) FROM recordatorios WHERE fecha_programada = CURDATE() OR LOWER(estado) = 'pendiente'")->fetchColumn();
             $alertas = (int) $this->pdo->query("SELECT COUNT(*) FROM alertas WHERE estado = 'Activa' OR estado IS NULL")->fetchColumn();
             $separaciones = (int) $this->pdo->query("SELECT COUNT(*) FROM separaciones WHERE estado = 'Pendiente' OR estado = 'En revisión'")->fetchColumn();
         } catch (PDOException $exception) {
@@ -64,10 +64,10 @@ SQL)->fetchAll(PDO::FETCH_ASSOC);
             }
 
             $recordatorioRows = $this->pdo->query(<<<'SQL'
-SELECT id, titulo, descripcion, fecha, prioridad
+SELECT id, titulo, descripcion, fecha_programada, prioridad
 FROM recordatorios
-WHERE estado = 'Pendiente' OR DATE(fecha) <= CURDATE()
-ORDER BY DATE(fecha) ASC
+WHERE LOWER(estado) = 'pendiente' OR fecha_programada <= CURDATE()
+ORDER BY fecha_programada ASC
 LIMIT 5
 SQL)->fetchAll(PDO::FETCH_ASSOC);
 
@@ -77,7 +77,7 @@ SQL)->fetchAll(PDO::FETCH_ASSOC);
                     'titulo' => (string) ($row['titulo'] ?? 'Recordatorio'),
                     'detalle' => (string) ($row['descripcion'] ?? 'Sin descripción'),
                     'prioridad' => strtolower((string) ($row['prioridad'] ?? 'media')),
-                    'fecha' => (string) ($row['fecha'] ?? date('Y-m-d')),
+                    'fecha' => (string) ($row['fecha_programada'] ?? date('Y-m-d')),
                     'estado' => 'Pendiente',
                 ];
             }

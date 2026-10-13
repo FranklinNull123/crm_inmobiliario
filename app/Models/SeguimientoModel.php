@@ -12,7 +12,7 @@ final class SeguimientoModel
         try {
             $leadsActivos = (int) $this->pdo->query("SELECT COUNT(*) FROM leads WHERE etapa IS NOT NULL AND etapa NOT IN ('Venta Cerrada', 'Rechazado')")->fetchColumn();
             $leadsCalientes = (int) $this->pdo->query("SELECT COUNT(*) FROM leads WHERE LOWER(COALESCE(NULLIF(TRIM(nivel_interes), ''), 'Bajo')) IN ('alto', 'urgente') OR etapa IN ('Negociación', 'Visita Realizada')")->fetchColumn();
-            $recordatoriosProximos = (int) $this->pdo->query("SELECT COUNT(*) FROM recordatorios WHERE DATE(fecha) BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 7 DAY)")->fetchColumn();
+            $recordatoriosProximos = (int) $this->pdo->query("SELECT COUNT(*) FROM recordatorios WHERE fecha_programada BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 7 DAY)")->fetchColumn();
             $ventasMes = (float) $this->pdo->query("SELECT COALESCE(SUM(u.precio), 0) FROM ventas v LEFT JOIN unidades u ON u.id = v.id_unidad WHERE DATE_FORMAT(v.fecha, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')")->fetchColumn();
             $proyectosActivos = (int) $this->pdo->query("SELECT COUNT(*) FROM proyectos WHERE estado <> 'Cerrado'")->fetchColumn();
         } catch (PDOException $exception) {
@@ -72,9 +72,9 @@ SQL)->fetchAll(PDO::FETCH_ASSOC);
             }
 
             $recordatorioRows = $this->pdo->query(<<<'SQL'
-SELECT id, titulo, descripcion, fecha, prioridad
+SELECT id, titulo, descripcion, fecha_programada, prioridad
 FROM recordatorios
-ORDER BY DATE(fecha) ASC
+ORDER BY fecha_programada ASC
 LIMIT 6
 SQL)->fetchAll(PDO::FETCH_ASSOC);
 
@@ -84,7 +84,7 @@ SQL)->fetchAll(PDO::FETCH_ASSOC);
                     'titulo' => (string) ($row['titulo'] ?? 'Recordatorio'),
                     'detalle' => (string) ($row['descripcion'] ?? 'Sin descripción'),
                     'prioridad' => strtolower((string) ($row['prioridad'] ?? 'media')),
-                    'fecha' => (string) ($row['fecha'] ?? date('Y-m-d')),
+                    'fecha' => (string) ($row['fecha_programada'] ?? date('Y-m-d')),
                     'estado' => 'Pendiente',
                 ];
             }

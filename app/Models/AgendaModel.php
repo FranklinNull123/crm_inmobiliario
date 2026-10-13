@@ -10,11 +10,11 @@ final class AgendaModel
     public function getResumen(): array
     {
         try {
-            $hoy = (int) $this->pdo->query("SELECT COUNT(*) FROM recordatorios WHERE DATE(fecha) = CURDATE() OR estado = 'Pendiente'")->fetchColumn();
-            $semana = (int) $this->pdo->query("SELECT COUNT(*) FROM recordatorios WHERE DATE(fecha) BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 7 DAY)")->fetchColumn();
+            $hoy = (int) $this->pdo->query("SELECT COUNT(*) FROM recordatorios WHERE fecha_programada = CURDATE() OR LOWER(estado) = 'pendiente'")->fetchColumn();
+            $semana = (int) $this->pdo->query("SELECT COUNT(*) FROM recordatorios WHERE fecha_programada BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 7 DAY)")->fetchColumn();
             $visitas = (int) $this->pdo->query("SELECT COUNT(*) FROM leads WHERE etapa = 'Visita Realizada' OR etapa = 'Contactado'")->fetchColumn();
             $citas = (int) $this->pdo->query("SELECT COUNT(*) FROM recordatorios WHERE tipo = 'Cita' OR titulo LIKE '%cita%' ")->fetchColumn();
-            $proximas = (int) $this->pdo->query("SELECT COUNT(*) FROM recordatorios WHERE DATE(fecha) BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY)")->fetchColumn();
+            $proximas = (int) $this->pdo->query("SELECT COUNT(*) FROM recordatorios WHERE fecha_programada BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY)")->fetchColumn();
         } catch (PDOException $exception) {
             error_log('[AgendaModel] ' . $exception->getMessage());
             return [
@@ -41,9 +41,9 @@ final class AgendaModel
 
         try {
             $recordatorios = $this->pdo->query(<<<'SQL'
-SELECT id, titulo, descripcion, fecha, prioridad, estado, tipo
+SELECT id, titulo, descripcion, fecha_programada, prioridad, estado, tipo
 FROM recordatorios
-ORDER BY DATE(fecha) ASC, id DESC
+ORDER BY fecha_programada ASC, id DESC
 LIMIT 10
 SQL)->fetchAll(PDO::FETCH_ASSOC);
 
@@ -52,7 +52,7 @@ SQL)->fetchAll(PDO::FETCH_ASSOC);
                     'tipo' => (string) ($item['tipo'] ?? 'Recordatorio'),
                     'titulo' => (string) ($item['titulo'] ?? 'Recordatorio'),
                     'detalle' => (string) ($item['descripcion'] ?? 'Sin descripción'),
-                    'fecha' => (string) ($item['fecha'] ?? date('Y-m-d')),
+                    'fecha' => (string) ($item['fecha_programada'] ?? date('Y-m-d')),
                     'prioridad' => strtolower((string) ($item['prioridad'] ?? 'media')),
                     'estado' => (string) ($item['estado'] ?? 'Pendiente'),
                 ];

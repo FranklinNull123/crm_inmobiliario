@@ -196,6 +196,7 @@
   <script src="js/notificaciones.js"></script>
   <script src="js/seguimiento.js"></script>
   <script src="js/tareas.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
   <script src="js/agenda.js"></script>
   <script src="js/pipeline.js"></script>
   <script src="js/prospeccion.js"></script>

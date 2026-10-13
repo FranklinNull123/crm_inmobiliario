@@ -11,7 +11,7 @@ final class NotificacionModel
     {
         try {
             $alertas = $this->pdo->query('SELECT COUNT(*) FROM alertas')->fetchColumn();
-            $recordatorios = $this->pdo->query('SELECT COUNT(*) FROM recordatorios WHERE fecha <= CURDATE() OR estado = "Pendiente"')->fetchColumn();
+            $recordatorios = $this->pdo->query("SELECT COUNT(*) FROM recordatorios WHERE fecha_programada <= CURDATE() OR LOWER(estado) = 'pendiente'")->fetchColumn();
             $campanas = $this->pdo->query('SELECT COUNT(*) FROM campanas WHERE activo = 1')->fetchColumn();
             $pendientes = $this->pdo->query('SELECT COUNT(*) FROM cuotas WHERE pagada = 0')->fetchColumn();
         } catch (PDOException $exception) {
@@ -46,14 +46,14 @@ final class NotificacionModel
                 ];
             }
 
-            $recordatorios = $this->pdo->query('SELECT id, titulo, descripcion, fecha, prioridad FROM recordatorios ORDER BY fecha ASC LIMIT 5')->fetchAll(PDO::FETCH_ASSOC);
+            $recordatorios = $this->pdo->query('SELECT id, titulo, descripcion, fecha_programada, prioridad FROM recordatorios ORDER BY fecha_programada ASC LIMIT 5')->fetchAll(PDO::FETCH_ASSOC);
             foreach ($recordatorios as $item) {
                 $notificaciones[] = [
                     'tipo' => 'Recordatorio',
                     'titulo' => (string) ($item['titulo'] ?? 'Recordatorio'),
                     'detalle' => (string) ($item['descripcion'] ?? ''),
                     'prioridad' => (string) ($item['prioridad'] ?? 'Media'),
-                    'fecha' => (string) ($item['fecha'] ?? date('Y-m-d')),
+                    'fecha' => (string) ($item['fecha_programada'] ?? date('Y-m-d')),
                 ];
             }
 

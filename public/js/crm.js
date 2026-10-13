@@ -143,7 +143,6 @@
         leadName.focus();
       };
       document.getElementById('newLeadBtn').addEventListener('click', openLeadModal);
-      document.getElementById('newRecordBtn')?.addEventListener('click', openLeadModal);
       leadModal.querySelectorAll('[data-lead-close]').forEach((button) => {
         button.addEventListener('click', () => leadModal.classList.add('hidden'));
       });
@@ -153,4 +152,3 @@
 
       renderBoard();
     }
-

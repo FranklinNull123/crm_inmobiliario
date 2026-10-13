@@ -229,9 +229,6 @@ foreach (array_slice(preg_split('/\s+/u', trim((string) ($headerUser['name'] ?? 
           <h1 id="pageTitle" class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Leads</h1>
           <p id="pageSubtitle" class="mt-1 text-sm text-slate-500 dark:text-slate-400">Gestiona la información de este módulo.</p>
         </div>
-        <button id="newRecordBtn" type="button" class="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-500/30">
-          <i data-lucide="plus" class="h-4 w-4"></i>Nuevo registro
-        </button>
       </div>
 
       <!-- Dynamic module container -->

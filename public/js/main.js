@@ -87,7 +87,6 @@
       const isDashboard = module === 'Dashboard';
       document.getElementById('pageTitle').textContent = isDashboard ? 'Dashboard Gerencial' : (sub || module);
       document.getElementById('pageSubtitle').textContent = isDashboard ? 'Resumen comercial y financiero de tus proyectos.' : 'Gestiona la información de este módulo.';
-      document.getElementById('newRecordBtn').classList.toggle('hidden', !['CRM'].includes(module));
     }
 
     // ---------- Utilidades compartidas entre módulos ----------

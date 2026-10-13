@@ -1,4 +1,4 @@
-USE `cms_inmobiliario`;
+USE `crm_inmobiliario`;
 
 CREATE TABLE IF NOT EXISTS `recordatorios` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,

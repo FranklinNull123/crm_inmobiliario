@@ -1,6 +1,6 @@
 -- Vincula usuarios con fichas de asesor y registra propietarios de leads.
 -- Ejecutar una sola vez después de 001_fundamentos.sql.
-USE `cms_inmobiliario`;
+USE `crm_inmobiliario`;
 
 ALTER TABLE `asesores`
   ADD COLUMN `id_usuario` INT UNSIGNED NULL,

@@ -1,6 +1,6 @@
 -- Repara los caracteres acentuados convertidos a ?? por importación desde consola.
 -- Ejecutar una sola vez después de 001_fundamentos.sql y 004_proyectos_inventario.sql.
-USE `cms_inmobiliario`;
+USE `crm_inmobiliario`;
 
 UPDATE `catalogo_valores`
 SET `codigo` = 'en_planificacion', `etiqueta` = CONVERT(UNHEX('456e20706c616e69666963616369c3b36e') USING utf8mb4)

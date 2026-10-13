@@ -1,6 +1,6 @@
 -- Estructura operativa de proyectos, etapas y unidades.
 -- Ejecutar una sola vez después de las migraciones anteriores.
-USE `cms_inmobiliario`;
+USE `crm_inmobiliario`;
 
 ALTER TABLE `proyectos`
   ADD COLUMN `descripcion` TEXT NULL AFTER `ubicacion`,

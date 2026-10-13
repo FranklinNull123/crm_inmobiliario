@@ -49,7 +49,7 @@ SQL;
     {
         $titulo = trim((string) ($input['titulo'] ?? ''));
         $descripcion = trim((string) ($input['descripcion'] ?? ''));
-        $tipo = in_array((string) ($input['tipo'] ?? ''), ['Lead', 'Cliente', 'Venta', 'General'], true) ? (string) $input['tipo'] : 'General';
+        $tipo = in_array((string) ($input['tipo'] ?? ''), ['Lead', 'Cliente', 'Venta', 'Tarea', 'General'], true) ? (string) $input['tipo'] : 'General';
         $prioridad = in_array((string) ($input['prioridad'] ?? ''), ['alta', 'media', 'baja'], true) ? (string) $input['prioridad'] : 'media';
         $fecha = trim((string) ($input['fecha_programada'] ?? ''));
 

@@ -37,6 +37,7 @@ if (($_GET['action'] ?? '') === 'logout' && $_SERVER['REQUEST_METHOD'] === 'POST
 }
 
 $requestedView = (string) ($_GET['view'] ?? 'dashboard');
+$requestedView = in_array($requestedView, ['seguimiento', 'tareas'], true) ? 'agenda' : $requestedView;
 $api = $_GET['api'] ?? null;
 if ($requestedView === 'login') {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -1095,6 +1096,7 @@ require $viewFile;
     const tareas = <?= json_encode($tareas ?? [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR) ?>;
     const agendaResumen = <?= json_encode($agendaResumen ?? [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR) ?>;
     window.agenda = <?= json_encode($agenda ?? [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR) ?>;
+    const agendaCsrfToken = <?= json_encode($csrfToken, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR) ?>;
     const pipelineResumen = <?= json_encode($pipelineResumen ?? [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR) ?>;
     const pipeline = <?= json_encode($pipeline ?? [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR) ?>;
     const prospeccionResumen = <?= json_encode($prospeccionResumen ?? [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR) ?>;

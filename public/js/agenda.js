@@ -61,6 +61,50 @@ const initializeAgenda = () => {
 
     calendar.render();
   }
+
+  const taskForm = document.getElementById('agendaTaskForm');
+  const taskFeedback = document.getElementById('agendaTaskFeedback');
+  if (taskForm && typeof agendaCsrfToken !== 'undefined') {
+    taskForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const submitButton = taskForm.querySelector('button[type="submit"]');
+      submitButton.disabled = true;
+      taskFeedback.className = 'rounded-lg bg-slate-100 px-3 py-2 text-xs text-slate-600 dark:bg-slate-800 dark:text-slate-300';
+      taskFeedback.textContent = 'Guardando tarea...';
+      taskFeedback.classList.remove('hidden');
+
+      const formData = new FormData(taskForm);
+      const payload = {
+        action: 'create',
+        titulo: String(formData.get('titulo') || '').trim(),
+        descripcion: String(formData.get('descripcion') || '').trim(),
+        tipo: 'Tarea',
+        prioridad: String(formData.get('prioridad') || 'media'),
+        fecha_programada: String(formData.get('fecha_programada') || ''),
+        _csrf: agendaCsrfToken
+      };
+
+      try {
+        const response = await fetch('?api=recordatorios', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': agendaCsrfToken
+          },
+          body: JSON.stringify(payload)
+        });
+        const result = await response.json();
+        if (!response.ok || !result.ok) {
+          throw new Error(result.message || 'No se pudo crear la tarea.');
+        }
+        window.location.reload();
+      } catch (error) {
+        taskFeedback.className = 'rounded-lg bg-rose-100 px-3 py-2 text-xs text-rose-700 dark:bg-rose-500/10 dark:text-rose-300';
+        taskFeedback.textContent = error.message || 'No se pudo crear la tarea.';
+        submitButton.disabled = false;
+      }
+    });
+  }
 };
 
 window.addEventListener('load', initializeAgenda);

@@ -33,12 +33,52 @@ $escape = static fn (mixed $value): string => htmlspecialchars((string) $value, 
         <p class="text-xs font-semibold uppercase tracking-[0.2em] text-brand-600">Fase 23</p>
         <h1 class="mt-1 text-2xl font-bold text-slate-900 dark:text-white">Agenda y citas</h1>
       </div>
-      <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300"><?= count($agenda) ?> eventos</span>
+      <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300"><?= count($agenda) ?> seguimientos</span>
     </div>
 
-    <div class="p-4 sm:p-6">
-      <div id="agendaCalendar" class="min-h-[620px]" aria-label="Calendario de agenda"></div>
-      <p class="mt-3 text-xs text-slate-500 dark:text-slate-400">Calendario de consulta. Los eventos se administran desde Recordatorios.</p>
+    <div class="grid gap-6 p-4 sm:p-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+      <div>
+        <div id="agendaCalendar" class="min-h-[620px]" aria-label="Calendario de agenda"></div>
+        <p class="mt-3 text-xs text-slate-500 dark:text-slate-400">Selecciona un evento para consultar su detalle.</p>
+      </div>
+      <aside class="rounded-2xl border border-brand-100 bg-brand-50/60 p-4 dark:border-brand-900/40 dark:bg-brand-950/30">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-brand-600 dark:text-brand-400">Seguimiento</p>
+            <h2 class="mt-1 text-lg font-bold text-slate-900 dark:text-white">Nueva tarea</h2>
+            <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">Organiza llamadas, visitas y pendientes desde Agenda.</p>
+          </div>
+          <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-white shadow-sm"><i data-lucide="check-check" class="h-4 w-4"></i></span>
+        </div>
+        <form id="agendaTaskForm" class="mt-5 space-y-3">
+          <label class="block">
+            <span class="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-200">Título</span>
+            <input name="titulo" required maxlength="120" class="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm dark:border-slate-700 dark:bg-slate-900" placeholder="Llamar a nuevo lead">
+          </label>
+          <div class="grid grid-cols-2 gap-3">
+            <label class="block">
+              <span class="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-200">Fecha</span>
+              <input name="fecha_programada" type="date" required value="<?= date('Y-m-d') ?>" class="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm dark:border-slate-700 dark:bg-slate-900">
+            </label>
+            <label class="block">
+              <span class="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-200">Prioridad</span>
+              <select name="prioridad" class="h-10 w-full rounded-lg border border-slate-200 bg-white px-2 text-sm dark:border-slate-700 dark:bg-slate-900">
+                <option value="alta">Alta</option>
+                <option value="media" selected>Media</option>
+                <option value="baja">Baja</option>
+              </select>
+            </label>
+          </div>
+          <label class="block">
+            <span class="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-200">Descripción</span>
+            <textarea name="descripcion" rows="3" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" placeholder="¿Qué debes hacer?"></textarea>
+          </label>
+          <p id="agendaTaskFeedback" role="status" class="hidden rounded-lg px-3 py-2 text-xs"></p>
+          <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-500/20">
+            <i data-lucide="plus" class="h-4 w-4"></i>Crear tarea
+          </button>
+        </form>
+      </aside>
     </div>
 
     <div class="border-t border-slate-100 divide-y divide-slate-100 dark:border-slate-800 dark:divide-slate-800">

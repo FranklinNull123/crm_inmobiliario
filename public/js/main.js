@@ -84,9 +84,6 @@
       const module = link.dataset.module;
       const sub = link.dataset.sub;
       renderBreadcrumbs(sub ? ['Inicio', module, sub] : ['Inicio', module]);
-      const isDashboard = module === 'Dashboard';
-      document.getElementById('pageTitle').textContent = isDashboard ? 'Dashboard Gerencial' : (sub || module);
-      document.getElementById('pageSubtitle').textContent = isDashboard ? 'Resumen comercial y financiero de tus proyectos.' : 'Gestiona la información de este módulo.';
     }
 
     // ---------- Utilidades compartidas entre módulos ----------

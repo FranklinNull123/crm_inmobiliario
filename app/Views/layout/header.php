@@ -224,12 +224,5 @@ foreach (array_slice(preg_split('/\s+/u', trim((string) ($headerUser['name'] ?? 
         <ol id="breadcrumbs" class="flex flex-wrap items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400"></ol>
       </nav>
 
-      <div id="pageHeader" class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 id="pageTitle" class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Leads</h1>
-          <p id="pageSubtitle" class="mt-1 text-sm text-slate-500 dark:text-slate-400">Gestiona la información de este módulo.</p>
-        </div>
-      </div>
-
       <!-- Dynamic module container -->
       <section id="moduleContainer" aria-live="polite">

@@ -26,7 +26,58 @@ $advisors = $advisors ?? [];
           <p id="leadFeedback" role="status" aria-live="polite" class="mb-4 rounded-lg border px-3 py-2 text-sm <?= $leadFeedback !== null ? '' : 'hidden' ?>"><?= $leadFeedback !== null ? htmlspecialchars($leadFeedback, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') : '' ?></p>
 
           <div class="-mx-4 overflow-x-auto px-4 pb-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
-            <div id="kanbanBoard" class="flex min-w-max gap-4" role="list" aria-label="Embudo comercial"></div>
+            <div id="kanbanBoard" class="flex min-w-max gap-4" role="list" aria-label="Embudo comercial">
+              <?php foreach ($leads as $lead): ?>
+                <?php
+                $leadId = (int) ($lead['id'] ?? 0);
+                $leadClientId = $lead['client_id'] ?? null;
+                ?>
+                <article class="w-80 shrink-0 self-start rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900" role="listitem">
+                  <div class="flex items-start justify-between gap-3">
+                    <div>
+                      <h2 class="font-semibold text-slate-900 dark:text-white"><?= htmlspecialchars((string) ($lead['name'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></h2>
+                      <p class="mt-1 text-sm text-slate-500 dark:text-slate-400"><?= htmlspecialchars((string) ($lead['status'] ?? 'Nuevo Lead'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></p>
+                    </div>
+                    <?php if ($leadClientId !== null): ?>
+                      <span class="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">Cliente</span>
+                    <?php endif; ?>
+                  </div>
+                  <?php if (($lead['project'] ?? '') !== '' || ($lead['advisor'] ?? '') !== ''): ?>
+                    <p class="mt-3 text-xs text-slate-500 dark:text-slate-400">
+                      <?= htmlspecialchars((string) ($lead['project'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>
+                      <?= ($lead['project'] ?? '') !== '' && ($lead['advisor'] ?? '') !== '' ? ' · ' : '' ?>
+                      <?= htmlspecialchars((string) ($lead['advisor'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>
+                    </p>
+                  <?php endif; ?>
+                  <?php if ($leadClientId === null): ?>
+                    <details class="mt-4 border-t border-gray-100 pt-3 dark:border-slate-800">
+                      <summary class="cursor-pointer text-sm font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-400">Convertir a cliente</summary>
+                      <form method="post" action="?view=crm" class="mt-3 space-y-3">
+                        <input type="hidden" name="action" value="convert_to_client">
+                        <input type="hidden" name="id" value="<?= $leadId ?>">
+                        <input type="hidden" name="_csrf" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">
+                        <div>
+                          <label for="lead-dni-<?= $leadId ?>" class="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-200">DNI o documento <span class="text-rose-500">*</span></label>
+                          <input id="lead-dni-<?= $leadId ?>" name="dni" type="text" maxlength="20" required class="h-9 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+                        </div>
+                        <div>
+                          <label for="lead-phone-<?= $leadId ?>" class="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-200">Teléfono</label>
+                          <input id="lead-phone-<?= $leadId ?>" name="phone" type="tel" maxlength="30" class="h-9 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+                        </div>
+                        <div>
+                          <label for="lead-email-<?= $leadId ?>" class="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-200">Correo electrónico</label>
+                          <input id="lead-email-<?= $leadId ?>" name="email" type="email" maxlength="120" class="h-9 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+                        </div>
+                        <button type="submit" class="w-full rounded-lg bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-500/30">Crear ficha de cliente</button>
+                      </form>
+                    </details>
+                  <?php endif; ?>
+                </article>
+              <?php endforeach; ?>
+              <?php if ($leads === []): ?>
+                <p class="rounded-xl border border-dashed border-gray-300 px-6 py-8 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">No hay leads registrados.</p>
+              <?php endif; ?>
+            </div>
           </div>
 
           <div id="leadModal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true" aria-labelledby="leadModalTitle">

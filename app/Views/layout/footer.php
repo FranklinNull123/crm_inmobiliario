@@ -143,7 +143,7 @@
             <label id="profileAvatarLabel" for="profileAvatarInput" class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
               <i data-lucide="image-plus" class="h-4 w-4"></i>
               Cambiar foto
-              <input id="profileAvatarInput" type="file" accept="image/*" class="hidden" />
+              <input id="profileAvatarInput" type="file" accept="image/png,image/jpeg,image/gif,image/webp" class="hidden" />
             </label>
           </div>
 
@@ -175,7 +175,7 @@
     </footer>
   </div>
 
-  <script src="js/main.js"></script>
+  <script src="js/main.js?v=20261012"></script>
   <script src="js/dashboard.js"></script>
   <script src="js/inventory.js"></script>
   <script src="js/crm.js"></script>
@@ -216,6 +216,7 @@
 
       const setAvatarPreview = (src) => {
         if (!src) {
+          avatarPreview.src = '';
           avatarPreview?.classList.add('hidden');
           avatarFallback?.classList.remove('hidden');
           return;
@@ -225,28 +226,52 @@
         avatarFallback?.classList.add('hidden');
       };
 
-      const compressAvatar = async (dataUrl) => {
-        const maxChars = 50000;
-        if (!dataUrl || dataUrl.length <= maxChars) {
-          return dataUrl;
+      avatarPreview?.addEventListener('error', () => {
+        setAvatarPreview('');
+      });
+
+      const compressAvatar = async (file) => {
+        const allowedTypes = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
+        const maxChars = 2500000;
+        if (!allowedTypes.includes(file.type)) {
+          throw new Error('Selecciona una imagen PNG, JPG, GIF o WEBP.');
         }
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
           const image = new Image();
+          reader.onerror = () => reject(new Error('No se pudo leer la imagen seleccionada.'));
+          reader.onload = () => {
+            image.src = typeof reader.result === 'string' ? reader.result : '';
+          };
+          image.onerror = () => reject(new Error('El archivo seleccionado no es una imagen válida.'));
           image.onload = () => {
             const canvas = document.createElement('canvas');
-            const maxWidth = 900;
-            const maxHeight = 900;
+            const maxWidth = 2000;
+            const maxHeight = 2000;
             const scale = Math.min(1, maxWidth / image.width, maxHeight / image.height);
             canvas.width = Math.max(1, Math.round(image.width * scale));
             canvas.height = Math.max(1, Math.round(image.height * scale));
             const context = canvas.getContext('2d');
+            if (!context) {
+              reject(new Error('No se pudo procesar la imagen seleccionada.'));
+              return;
+            }
             context.fillStyle = '#ffffff';
             context.fillRect(0, 0, canvas.width, canvas.height);
             context.drawImage(image, 0, 0, canvas.width, canvas.height);
-            const compressed = canvas.toDataURL('image/jpeg', 0.72);
-            resolve(compressed.length <= maxChars ? compressed : canvas.toDataURL('image/jpeg', 0.45));
+            let quality = 0.82;
+            let compressed = canvas.toDataURL('image/jpeg', quality);
+            while (compressed.length > maxChars && quality > 0.45) {
+              quality -= 0.08;
+              compressed = canvas.toDataURL('image/jpeg', quality);
+            }
+            if (compressed.length > maxChars) {
+              reject(new Error('La imagen sigue siendo demasiado grande. Elige una imagen más pequeña.'));
+              return;
+            }
+            resolve(compressed);
           };
-          image.src = dataUrl;
+          reader.readAsDataURL(file);
         });
       };
 
@@ -271,13 +296,13 @@
       avatarInput?.addEventListener('change', async (event) => {
         const file = event.target.files?.[0];
         if (!file) return;
-        const reader = new FileReader();
-        reader.onload = async () => {
-          const dataUrl = typeof reader.result === 'string' ? reader.result : '';
-          const compressed = await compressAvatar(dataUrl);
+        try {
+          const compressed = await compressAvatar(file);
           setAvatarPreview(compressed);
-        };
-        reader.readAsDataURL(file);
+        } catch (error) {
+          alert(error instanceof Error ? error.message : 'No se pudo procesar la imagen.');
+          avatarInput.value = '';
+        }
       });
 
       profileForm?.addEventListener('submit', async (event) => {

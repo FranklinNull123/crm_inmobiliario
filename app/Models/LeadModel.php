@@ -35,6 +35,7 @@ SELECT
 	l.nombre AS name,
 	COALESCE(NULLIF(TRIM(l.etapa), ''), 'Nuevo Lead') AS status,
 	COALESCE(NULLIF(TRIM(l.etapa), ''), 'nuevo') AS stage,
+	l.id_cliente_convertido AS client_id,
 	COALESCE(NULLIF(TRIM(l.proyecto_interes), ''), '') AS project,
 	COALESCE(NULLIF(TRIM(l.nivel_interes), ''), 'Bajo') AS level,
 	'' AS next,
@@ -69,6 +70,7 @@ SQL;
 			$stage = strtolower((string) ($row['stage'] ?? 'nuevo'));
 			return [
 				'id' => (int) ($row['id'] ?? 0),
+				'client_id' => $row['client_id'] === null ? null : (int) $row['client_id'],
 				'status' => $status,
 				'stage' => $stage,
 				'name' => (string) ($row['name'] ?? ''),
@@ -114,7 +116,7 @@ SQL;
 
 	public function updateStatus(int $id, string $status, ?int $userId = null): bool
 	{
-		$sql = 'UPDATE leads SET etapa = :status WHERE id = :id';
+		$sql = 'UPDATE leads SET etapa = :status WHERE id = :id AND id_cliente_convertido IS NULL';
 		$params = ['status' => $status, 'id' => $id];
 		if ($userId !== null) {
 			$sql .= ' AND id_usuario_asignado = :user_id';
@@ -127,7 +129,7 @@ SQL;
 			return true;
 		}
 
-		$checkSql = 'SELECT 1 FROM leads WHERE id = :id';
+		$checkSql = 'SELECT 1 FROM leads WHERE id = :id AND id_cliente_convertido IS NULL';
 		$checkParams = ['id' => $id];
 		if ($userId !== null) {
 			$checkSql .= ' AND id_usuario_asignado = :user_id';
@@ -151,7 +153,7 @@ SQL;
 
 		$normalized = strtolower(trim($stage));
 		$status = $map[$normalized] ?? $map['nuevo'];
-		$sql = 'UPDATE leads SET etapa = :status WHERE id = :id';
+		$sql = 'UPDATE leads SET etapa = :status WHERE id = :id AND id_cliente_convertido IS NULL';
 		$params = ['status' => $status, 'id' => $id];
 		if ($userId !== null) {
 			$sql .= ' AND id_usuario_asignado = :user_id';
@@ -161,5 +163,80 @@ SQL;
 		$statement->execute($params);
 
 		return $statement->rowCount() > 0;
+	}
+
+	public function convertToClient(int $leadId, array $clientData, ?int $userId = null): int
+	{
+		$this->pdo->beginTransaction();
+		try {
+			$sql = 'SELECT id, nombre, id_usuario_asignado, id_cliente_convertido FROM leads WHERE id = :id';
+			$params = ['id' => $leadId];
+			if ($userId !== null) {
+				$sql .= ' AND id_usuario_asignado = :user_id';
+				$params['user_id'] = $userId;
+			}
+			$sql .= ' FOR UPDATE';
+			$leadStatement = $this->pdo->prepare($sql);
+			$leadStatement->execute($params);
+			$lead = $leadStatement->fetch(PDO::FETCH_ASSOC);
+
+			if ($lead === false) {
+				throw new InvalidArgumentException('No se encontró ese lead o no tienes acceso.');
+			}
+			if ($lead['id_cliente_convertido'] !== null) {
+				throw new InvalidArgumentException('Este lead ya fue convertido en cliente.');
+			}
+
+			$existingClient = $this->pdo->prepare('SELECT id FROM clientes WHERE dni = :dni LIMIT 1');
+			$existingClient->execute(['dni' => $clientData['dni']]);
+			if ($existingClient->fetchColumn() !== false) {
+				throw new InvalidArgumentException('Ya existe un cliente registrado con ese DNI.');
+			}
+
+			$advisorId = null;
+			if ($lead['id_usuario_asignado'] !== null) {
+				$advisor = $this->pdo->prepare('SELECT id FROM asesores WHERE id_usuario = :user_id LIMIT 1');
+				$advisor->execute(['user_id' => (int) $lead['id_usuario_asignado']]);
+				$advisorId = $advisor->fetchColumn();
+				if ($advisorId === false) {
+					$advisorId = null;
+				}
+			}
+
+			$insertClient = $this->pdo->prepare(
+				'INSERT INTO clientes (id_asesor, nombre, dni, email, telefono, direccion, ocupacion, estado_civil, estado, fecha_registro) '
+				. 'VALUES (:advisor_id, :name, :dni, :email, :phone, :address, :occupation, :civil_status, :status, CURDATE())'
+			);
+			$insertClient->execute([
+				'advisor_id' => $advisorId,
+				'name' => $lead['nombre'],
+				'dni' => $clientData['dni'],
+				'email' => $clientData['email'],
+				'phone' => $clientData['phone'],
+				'address' => $clientData['address'],
+				'occupation' => $clientData['occupation'],
+				'civil_status' => $clientData['civil_status'],
+				'status' => 'Cliente Activo',
+			]);
+			$clientId = (int) $this->pdo->lastInsertId();
+
+			if ($clientData['phone'] !== '') {
+				$insertContact = $this->pdo->prepare(
+					'INSERT INTO contactos (id_cliente, tipo_contacto, telefono, es_principal) VALUES (:client_id, :type, :phone, 1)'
+				);
+				$insertContact->execute(['client_id' => $clientId, 'type' => 'Teléfono', 'phone' => $clientData['phone']]);
+			}
+
+			$updateLead = $this->pdo->prepare('UPDATE leads SET etapa = :status, id_cliente_convertido = :client_id WHERE id = :id');
+			$updateLead->execute(['status' => 'Cliente', 'client_id' => $clientId, 'id' => $leadId]);
+
+			$this->pdo->commit();
+			return $clientId;
+		} catch (Throwable $exception) {
+			if ($this->pdo->inTransaction()) {
+				$this->pdo->rollBack();
+			}
+			throw $exception;
+		}
 	}
 }

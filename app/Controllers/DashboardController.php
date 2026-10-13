@@ -9,11 +9,13 @@ final class DashboardController
     {
     }
 
-    public function index(): array
+    public function index(array $filters = []): array
     {
         return [
+            'filters' => $this->dashboardModel->getFilterOptions(),
+            'kpis' => $this->dashboardModel->getKpis($filters),
             'salesData' => $this->dashboardModel->getVentasVsMetas(),
-            'recentSales' => $this->dashboardModel->getUltimasVentas(),
+            'recentSales' => $this->dashboardModel->getUltimasVentas($filters),
             'alerts' => $this->dashboardModel->getAlertas(),
         ];
     }

@@ -51,7 +51,6 @@
         document.getElementById('salesTable').innerHTML = '<tr><td colspan="5" class="px-5 py-8 text-center text-sm text-slate-500 dark:text-slate-400">Sin ventas conectadas.</td></tr>';
       }
 
-      document.getElementById('dashFilters').addEventListener('submit', (e) => e.preventDefault());
     }
 
     const renderAlerts = () => {
@@ -115,4 +114,3 @@
     };
 
     renderAlerts();
-

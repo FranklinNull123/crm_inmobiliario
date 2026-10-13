@@ -1,33 +1,42 @@
+<?php
+declare(strict_types=1);
+
+$escape = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+?>
 <!-- Dashboard Gerencial -->
         <div id="dashboardView" class="space-y-6">
           <!-- Filtros -->
-          <form id="dashFilters" class="rounded-2xl border border-gray-200/70 bg-white p-4 shadow-sm sm:p-5 dark:border-slate-800 dark:bg-slate-900" aria-label="Filtros del dashboard">
+          <form id="dashFilters" method="get" action="" class="rounded-2xl border border-gray-200/70 bg-white p-4 shadow-sm sm:p-5 dark:border-slate-800 dark:bg-slate-900" aria-label="Filtros del dashboard">
+            <input type="hidden" name="view" value="dashboard">
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5 lg:items-end">
               <div>
                 <label for="fRango" class="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400"><i data-lucide="calendar" class="h-3.5 w-3.5"></i>Rango de fechas</label>
-                <select id="fRango" class="dash-select">
-                  <option>Últimos 7 días</option><option>Últimos 30 días</option><option selected>Últimos 6 meses</option><option>Este año</option><option>Personalizado…</option>
+                <select id="fRango" name="range" class="dash-select">
+                <option value="7d" <?= ($dashboardFilters['range'] ?? '') === '7d' ? 'selected' : '' ?>>Últimos 7 días</option><option value="30d" <?= ($dashboardFilters['range'] ?? '') === '30d' ? 'selected' : '' ?>>Últimos 30 días</option><option value="6m" <?= ($dashboardFilters['range'] ?? '6m') === '6m' ? 'selected' : '' ?>>Últimos 6 meses</option><option value="year" <?= ($dashboardFilters['range'] ?? '') === 'year' ? 'selected' : '' ?>>Este año</option>
                 </select>
               </div>
               <div>
                 <label for="fProyecto" class="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400"><i data-lucide="building-2" class="h-3.5 w-3.5"></i>Proyecto</label>
-                <select id="fProyecto" class="dash-select">
-                  <option>Todos los proyectos</option>
+                <select id="fProyecto" name="project" class="dash-select">
+                <option value="">Todos los proyectos</option>
+                <?php foreach ($dashboardFiltersOptions['projects'] as $project): ?><option value="<?= (int) $project['id'] ?>" <?= (string) ($dashboardFilters['project'] ?? '') === (string) $project['id'] ? 'selected' : '' ?>><?= $escape($project['nombre']) ?></option><?php endforeach; ?>
                 </select>
               </div>
               <div>
                 <label for="fSede" class="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400"><i data-lucide="map-pin" class="h-3.5 w-3.5"></i>Sede</label>
-                <select id="fSede" class="dash-select">
-                  <option>Todas las sedes</option>
+                <select id="fSede" name="site" class="dash-select">
+                <option value="">Todas las sedes</option>
+                <?php foreach ($dashboardFiltersOptions['sites'] as $site): ?><option value="<?= $escape($site['nombre']) ?>" <?= ($dashboardFilters['site'] ?? '') === $site['nombre'] ? 'selected' : '' ?>><?= $escape($site['nombre']) ?></option><?php endforeach; ?>
                 </select>
               </div>
               <div>
                 <label for="fAsesor" class="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400"><i data-lucide="user-round" class="h-3.5 w-3.5"></i>Asesor</label>
-                <select id="fAsesor" class="dash-select">
-                  <option>Todos los asesores</option>
+                <select id="fAsesor" name="advisor" class="dash-select">
+                <option value="">Todos los asesores</option>
+                <?php foreach ($dashboardFiltersOptions['advisors'] as $advisor): ?><option value="<?= (int) $advisor['id'] ?>" <?= (string) ($dashboardFilters['advisor'] ?? '') === (string) $advisor['id'] ? 'selected' : '' ?>><?= $escape($advisor['nombre']) ?></option><?php endforeach; ?>
                 </select>
               </div>
-              <button type="submit" class="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-brand-600 px-4 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-500/30 sm:col-span-2 lg:col-span-1">
+              <button type="button" onclick="this.form.submit()" class="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-brand-600 px-4 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-500/30 sm:col-span-2 lg:col-span-1">
                 <i data-lucide="filter" class="h-4 w-4"></i>Aplicar filtros
               </button>
             </div>
@@ -39,41 +48,41 @@
               <div class="flex items-start justify-between">
                 <div>
                   <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Leads nuevos</p>
-                  <p class="mt-2 text-3xl font-bold tracking-tight text-slate-900 dark:text-white">—</p>
+                  <p class="mt-2 text-3xl font-bold tracking-tight text-slate-900 dark:text-white"><?= (int) ($dashboardKpis['leads_nuevos'] ?? 0) ?></p>
                 </div>
                 <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-600 dark:bg-brand-600/15 dark:text-brand-400"><i data-lucide="user-plus" class="h-5 w-5"></i></span>
               </div>
-              <p class="mt-4 text-sm text-slate-500 dark:text-slate-400">Sin datos conectados</p>
+              <p class="mt-4 text-sm text-slate-500 dark:text-slate-400">Leads en etapa inicial</p>
             </article>
             <article class="rounded-2xl border border-gray-200/70 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
               <div class="flex items-start justify-between">
                 <div>
                   <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Ventas cerradas</p>
-                  <p class="mt-2 text-3xl font-bold tracking-tight text-slate-900 dark:text-white">—</p>
+                  <p class="mt-2 text-3xl font-bold tracking-tight text-slate-900 dark:text-white"><?= (int) ($dashboardKpis['ventas_cerradas'] ?? 0) ?></p>
                 </div>
                 <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400"><i data-lucide="handshake" class="h-5 w-5"></i></span>
               </div>
-              <p class="mt-4 text-sm text-slate-500 dark:text-slate-400">Sin datos conectados</p>
+              <p class="mt-4 text-sm text-slate-500 dark:text-slate-400">Operaciones con estado vendido</p>
             </article>
             <article class="rounded-2xl border border-gray-200/70 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
               <div class="flex items-start justify-between">
                 <div>
                   <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Ingresos cobrados</p>
-                  <p class="mt-2 text-3xl font-bold tracking-tight text-slate-900 dark:text-white">—</p>
+                  <p class="mt-2 text-3xl font-bold tracking-tight text-slate-900 dark:text-white">S/ <?= number_format((float) ($dashboardKpis['ingresos_cobrados'] ?? 0), 2, '.', ',') ?></p>
                 </div>
                 <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400"><i data-lucide="banknote" class="h-5 w-5"></i></span>
               </div>
-              <p class="mt-4 text-sm text-slate-500 dark:text-slate-400">Sin datos conectados</p>
+              <p class="mt-4 text-sm text-slate-500 dark:text-slate-400">Cuotas registradas como pagadas</p>
             </article>
             <article class="rounded-2xl border border-gray-200/70 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
               <div class="flex items-start justify-between">
                 <div>
                   <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Unidades disponibles</p>
-                  <p class="mt-2 text-3xl font-bold tracking-tight text-slate-900 dark:text-white">—</p>
+                  <p class="mt-2 text-3xl font-bold tracking-tight text-slate-900 dark:text-white"><?= (int) ($dashboardKpis['unidades_disponibles'] ?? 0) ?></p>
                 </div>
                 <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-sky-50 text-sky-600 dark:bg-sky-500/15 dark:text-sky-400"><i data-lucide="home" class="h-5 w-5"></i></span>
               </div>
-              <p class="mt-4 text-sm text-slate-500 dark:text-slate-400">Sin datos conectados</p>
+              <p class="mt-4 text-sm text-slate-500 dark:text-slate-400">Inventario activo disponible</p>
             </article>
           </div>
 
@@ -98,8 +107,8 @@
 
             <article class="rounded-2xl border border-gray-200/70 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
               <h2 class="text-base font-semibold text-slate-900 dark:text-white">Estado del Inventario</h2>
-              <p class="text-sm text-slate-500 dark:text-slate-400">Sin datos conectados</p>
-              <div class="flex min-h-64 items-center justify-center text-sm text-slate-500 dark:text-slate-400">Sin datos de inventario conectados</div>
+              <p class="text-sm text-slate-500 dark:text-slate-400">Resumen calculado desde el inventario activo.</p>
+              <div class="flex min-h-64 items-center justify-center text-sm text-slate-500 dark:text-slate-400"><?= (int) ($dashboardKpis['unidades_disponibles'] ?? 0) ?> unidades disponibles</div>
             </article>
           </div>
 
@@ -107,8 +116,8 @@
           <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <article class="overflow-hidden rounded-2xl border border-gray-200/70 bg-white shadow-sm lg:col-span-2 dark:border-slate-800 dark:bg-slate-900">
               <div class="flex items-center justify-between px-5 py-4">
-                <h2 class="text-base font-semibold text-slate-900 dark:text-white">Últimos Ventas y Separaciones</h2>
-                <a href="#" class="text-sm font-medium text-brand-600 hover:underline dark:text-brand-400">Ver todo</a>
+                <h2 class="text-base font-semibold text-slate-900 dark:text-white">Últimas ventas y separaciones</h2>
+                <a href="?view=ventas" class="text-sm font-medium text-brand-600 hover:underline dark:text-brand-400">Ver todo</a>
               </div>
               <div class="overflow-x-auto">
                 <table class="w-full min-w-[560px] text-left text-sm">

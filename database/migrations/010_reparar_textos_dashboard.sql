@@ -1,0 +1,8 @@
+USE `crm_inmobiliario`;
+
+UPDATE usuarios SET nombres = CONVERT(UNHEX('4361726c6f732052616dc3ad72657a') USING utf8mb4) WHERE nombres = 'Carlos Ram??rez';
+UPDATE asesores SET nombre = CONVERT(UNHEX('4361726c6f732052616dc3ad72657a') USING utf8mb4) WHERE nombre = 'Carlos Ram??rez';
+UPDATE clientes SET nombre = CONVERT(UNHEX('4d6172c3ad61204cc3b370657a') USING utf8mb4) WHERE id = 1;
+UPDATE clientes SET nombre = CONVERT(UNHEX('506564726f2052616dc3ad72657a') USING utf8mb4) WHERE id = 2;
+UPDATE clientes SET nombre = CONVERT(UNHEX('4361726d656e2056c3a1737175657a') USING utf8mb4) WHERE id = 3;
+UPDATE proyectos SET nombre = CONVERT(UNHEX('5265736964656e6369616c204c6f7320c3816c616d6f73') USING utf8mb4) WHERE id = 4;

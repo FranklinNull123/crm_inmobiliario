@@ -1,0 +1,10 @@
+Peru UBIGEO reference data
+
+The bundled 2025 district list is based on ubigeo_inei_2025.csv from:
+https://github.com/MichaelSuarez0/ubigeos_peru
+
+Source repository license: MIT, Copyright (c) 2025 MichaelSuarez0.
+The source identifies the dataset as compiled from the 2025 National Directory
+of Regional Governments, Provincial and District Municipalities, and Populated
+Centers. District coordinates are reference points, not surveyed property
+coordinates.

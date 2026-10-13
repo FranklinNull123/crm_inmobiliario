@@ -7,6 +7,48 @@ final class DashboardModel
     {
     }
 
+    public function getFilterOptions(): array
+    {
+        return [
+            'projects' => $this->pdo->query('SELECT id, nombre FROM proyectos ORDER BY nombre')->fetchAll(PDO::FETCH_ASSOC),
+            'sites' => $this->pdo->query('SELECT DISTINCT ubicacion AS nombre FROM proyectos WHERE ubicacion IS NOT NULL AND ubicacion <> "" ORDER BY ubicacion')->fetchAll(PDO::FETCH_ASSOC),
+            'advisors' => $this->pdo->query('SELECT id, nombre FROM asesores WHERE estado = 1 ORDER BY nombre')->fetchAll(PDO::FETCH_ASSOC),
+        ];
+    }
+
+    private function filterSql(array $filters, string $dateColumn = 'v.fecha', string $projectColumn = 'v.id_proyecto', ?string $advisorColumn = 'c.id_asesor'): array
+    {
+        $where = [];
+        $params = [];
+        $projectId = filter_var($filters['project'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        $advisorId = filter_var($filters['advisor'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        $site = trim((string) ($filters['site'] ?? ''));
+
+        if ($projectId !== false) {
+            $where[] = $projectColumn . ' = :project_id';
+            $params['project_id'] = $projectId;
+        }
+        if ($advisorId !== false && $advisorColumn !== null) {
+            $where[] = $advisorColumn . ' = :advisor_id';
+            $params['advisor_id'] = $advisorId;
+        }
+        if ($site !== '') {
+            $where[] = 'p.ubicacion = :site';
+            $params['site'] = $site;
+        }
+
+        $range = (string) ($filters['range'] ?? '6m');
+        $interval = match ($range) {
+            '7d' => '7 DAY',
+            '30d' => '30 DAY',
+            'year' => '1 YEAR',
+            default => '6 MONTH',
+        };
+        $where[] = sprintf('%s >= DATE_SUB(CURDATE(), INTERVAL %s)', $dateColumn, $interval);
+
+        return [$where === [] ? '1 = 1' : implode(' AND ', $where), $params];
+    }
+
     public function getVentasVsMetas(): array
     {
         $sql = <<<'SQL'
@@ -43,32 +85,59 @@ SQL;
         }, $rows);
     }
 
-    public function getUltimasVentas(): array
+    public function getKpis(array $filters = []): array
     {
+        [$where, $params] = $this->filterSql($filters, 'v.fecha', 'v.id_proyecto');
+        $queries = [
+            'ventas_cerradas' => ['SELECT COUNT(*) FROM ventas v JOIN clientes c ON c.id = v.id_cliente JOIN proyectos p ON p.id = v.id_proyecto WHERE v.estado = "Vendido" AND ' . $where, $params],
+            'ingresos_cobrados' => ['SELECT COALESCE(SUM(cu.monto), 0) FROM cuotas cu JOIN ventas v ON v.id = cu.id_venta JOIN clientes c ON c.id = v.id_cliente JOIN proyectos p ON p.id = v.id_proyecto WHERE cu.pagada = 1 AND ' . $where, $params],
+            'unidades_disponibles' => ['SELECT COUNT(*) FROM unidades u JOIN proyectos p ON p.id = u.id_proyecto WHERE u.activo = 1 AND u.estado = "Disponible" AND ' . $this->filterSql($filters, 'CURDATE()', 'u.id_proyecto', null)[0], $this->filterSql($filters, 'CURDATE()', 'u.id_proyecto', null)[1]],
+            'leads_nuevos' => ['SELECT COUNT(*) FROM leads l LEFT JOIN proyectos p ON p.nombre = l.proyecto_interes LEFT JOIN asesores a ON a.id_usuario = l.id_usuario_asignado WHERE l.etapa = "Nuevo Lead" AND ' . $this->filterSql($filters, 'CURDATE()', 'p.id', 'a.id')[0], $this->filterSql($filters, 'CURDATE()', 'p.id', 'a.id')[1]],
+        ];
+        $kpis = [];
+
+        foreach ($queries as $key => [$sql, $queryParams]) {
+            try {
+                $statement = $this->pdo->prepare($sql);
+                $statement->execute($queryParams);
+                $kpis[$key] = (float) $statement->fetchColumn();
+            } catch (PDOException $exception) {
+                error_log('[DashboardModel] ' . $exception->getMessage());
+                $kpis[$key] = 0;
+            }
+        }
+
+        return $kpis;
+    }
+
+    public function getUltimasVentas(array $filters = []): array
+    {
+        [$where, $params] = $this->filterSql($filters);
         $sql = <<<'SQL'
 SELECT
     c.nombre AS cliente,
     p.nombre AS proyecto,
     u.codigo AS unidad,
     v.estado AS estado,
-    DATE_FORMAT(v.fecha, '%d %b %Y') AS fecha
+    DATE_FORMAT(v.fecha, '%%d %%b %%Y') AS fecha
 FROM ventas AS v
 LEFT JOIN clientes AS c ON c.id = v.id_cliente
 LEFT JOIN proyectos AS p ON p.id = v.id_proyecto
 LEFT JOIN unidades AS u ON u.id = v.id_unidad
+LEFT JOIN asesores AS a ON a.id = c.id_asesor
+WHERE %s
 ORDER BY v.fecha DESC, v.id DESC
 LIMIT 5
 SQL;
+        $sql = sprintf($sql, $where);
 
         try {
             $statement = $this->pdo->prepare($sql);
-            $statement->execute();
+            $statement->execute($params);
             $rows = $statement->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $exception) {
             error_log('[DashboardModel] ' . $exception->getMessage());
-            return [
-                ['Cliente', 'Proyecto', 'Unidad', 'Estado', 'Fecha'],
-            ];
+            return [];
         }
 
         return array_map(static function (array $row): array {

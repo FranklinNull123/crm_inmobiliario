@@ -55,6 +55,34 @@ final class LeadController
 		return $this->leadModel->updateStatus($leadId, $status, $userId);
 	}
 
+	public function convertToClient(array $input, ?int $userId = null): int
+	{
+		$leadId = filter_var($input['id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+		if ($leadId === false) {
+			throw new InvalidArgumentException('El identificador del lead no es válido.');
+		}
+
+		$data = [
+			'dni' => trim((string) ($input['dni'] ?? '')),
+			'email' => trim((string) ($input['email'] ?? '')),
+			'phone' => trim((string) ($input['phone'] ?? '')),
+			'address' => trim((string) ($input['address'] ?? '')),
+			'occupation' => trim((string) ($input['occupation'] ?? '')),
+			'civil_status' => trim((string) ($input['civil_status'] ?? '')),
+		];
+		if ($data['dni'] === '' || mb_strlen($data['dni'], 'UTF-8') > 20) {
+			throw new InvalidArgumentException('El DNI o documento es obligatorio y debe tener hasta 20 caracteres.');
+		}
+		if ($data['email'] !== '' && (!filter_var($data['email'], FILTER_VALIDATE_EMAIL) || mb_strlen($data['email'], 'UTF-8') > 120)) {
+			throw new InvalidArgumentException('El correo electrónico no es válido.');
+		}
+		if (mb_strlen($data['phone'], 'UTF-8') > 30 || mb_strlen($data['address'], 'UTF-8') > 200 || mb_strlen($data['occupation'], 'UTF-8') > 100 || mb_strlen($data['civil_status'], 'UTF-8') > 50) {
+			throw new InvalidArgumentException('Uno de los datos del cliente excede la longitud permitida.');
+		}
+
+		return $this->leadModel->convertToClient($leadId, $data, $userId);
+	}
+
 	private function optionalPositiveId(mixed $value, string $field): ?int
 	{
 		if ($value === null || $value === '') {

@@ -98,7 +98,7 @@ $hasBroadAdvisorAccess = (bool) array_intersect(['superadmin', 'administrador', 
 $advisorScopeUserId = in_array('asesor', $currentRoles, true) && !$hasBroadAdvisorAccess ? (int) $currentUser['id'] : null;
 
 $viewPermissions = [
-    'dashboard' => 'dashboard', 'crm' => 'crm', 'campanas' => 'crm', 'alertas' => 'crm', 'cartera' => 'clientes', 'rendimiento' => 'reportes', 'expedientes' => 'clientes', 'recordatorios' => 'crm', 'notificaciones' => 'crm', 'seguimiento' => 'crm', 'tareas' => 'crm', 'agenda' => 'crm', 'pipeline' => 'crm', 'prospeccion' => 'crm', 'soporte' => 'auditoria', 'incidencias' => 'inventario', 'inventario' => 'inventario',
+    'dashboard' => 'dashboard', 'crm' => 'crm', 'campanas' => 'crm', 'alertas' => 'crm', 'cartera' => 'clientes', 'rendimiento' => 'reportes', 'expedientes' => 'clientes', 'recordatorios' => 'crm', 'notificaciones' => 'crm', 'seguimiento' => 'crm', 'tareas' => 'crm', 'agenda' => 'crm', 'pipeline' => 'crm', 'prospeccion' => 'crm', 'soporte' => 'auditoria', 'incidencias' => 'inventario', 'inventario' => 'inventario', 'mapa' => 'inventario',
     'clientes' => 'clientes', 'detalle' => 'clientes', 'proyectos' => 'proyectos',
     'ventas' => 'ventas', 'caja' => 'caja', 'cobranzas' => 'caja', 'comisiones' => 'ventas', 'contratos' => 'clientes', 'reportes' => 'reportes',
     'configuracion' => 'configuracion', 'auditoria' => 'auditoria',
@@ -122,6 +122,7 @@ $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 $routes = [
     'dashboard' => BASE_PATH . '/app/Views/dashboard/index.php',
     'crm' => BASE_PATH . '/app/Views/crm/kanban.php',
+    'mapa' => BASE_PATH . '/app/Views/mapa/index.php',
     'inventario' => BASE_PATH . '/app/Views/inventario/index.php',
     'clientes' => BASE_PATH . '/app/Views/clientes/index.php',
     'detalle' => BASE_PATH . '/app/Views/clientes/detalle.php',
@@ -167,6 +168,7 @@ $projectData = ['projects' => [], 'stages' => [], 'statuses' => []];
 $inventoryProjects = [];
 $inventoryStages = [];
 $unitStatuses = [];
+$mapaData = ['departments' => [], 'provinces' => [], 'districts' => [], 'projects' => [], 'leads' => [], 'mapData' => []];
 
 $leadFeedback = $_SESSION['lead_feedback'] ?? null;
 unset($_SESSION['lead_feedback']);
@@ -188,6 +190,7 @@ if ($api !== null && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     $apiPermissions = [
         'lead_etapa' => ['crm', 'editar'],
+        'mapa_ubicacion' => ['inventario', 'editar'],
         'separacion' => ['separaciones', 'crear'],
         'configuracion' => ['configuracion', 'editar'],
         'proyectos' => ['proyectos', 'editar'],
@@ -212,6 +215,35 @@ if ($api !== null && $_SERVER['REQUEST_METHOD'] === 'POST') {
         http_response_code(403);
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode(['ok' => false, 'message' => 'No tienes permiso para esta operación.'], JSON_THROW_ON_ERROR);
+        exit;
+    }
+    if ($api === 'mapa_ubicacion') {
+        header('Content-Type: application/json; charset=utf-8');
+        $entityType = $payload['type'] ?? '';
+        if ($entityType === 'lead' && !cms_has_permission($pdo, 'crm', 'editar')) {
+            http_response_code(403);
+            echo json_encode(['ok' => false, 'message' => 'No tienes permiso para modificar la ubicación de leads.'], JSON_THROW_ON_ERROR);
+            exit;
+        }
+        try {
+            require_once BASE_PATH . '/app/Models/MapaModel.php';
+            require_once BASE_PATH . '/app/Controllers/MapaController.php';
+            $mapaController = new MapaController(new MapaModel($pdo));
+            $mapaController->saveLocation($payload, $advisorScopeUserId);
+            cms_audit($pdo, 'ubicacion_comercial_actualizada', $entityType === 'lead' ? 'leads' : 'proyectos', (string) ($payload['id'] ?? ''), null, [
+                'distrito' => $payload['district'] ?? '',
+                'latitud' => $payload['latitude'] ?? null,
+                'longitud' => $payload['longitude'] ?? null,
+            ]);
+            echo json_encode(['ok' => true], JSON_THROW_ON_ERROR);
+        } catch (InvalidArgumentException $exception) {
+            http_response_code(422);
+            echo json_encode(['ok' => false, 'message' => $exception->getMessage()], JSON_THROW_ON_ERROR);
+        } catch (PDOException $exception) {
+            error_log('[Mapa] ' . $exception->getMessage());
+            http_response_code(409);
+            echo json_encode(['ok' => false, 'message' => 'No se pudo guardar la ubicación.'], JSON_THROW_ON_ERROR);
+        }
         exit;
     }
     if ($api === 'configuracion') {
@@ -593,7 +625,15 @@ switch ($view) {
         require_once BASE_PATH . '/app/Models/DashboardModel.php';
         require_once BASE_PATH . '/app/Controllers/DashboardController.php';
         $dashboardController = new DashboardController(new DashboardModel($pdo));
-        $dashboardData = $dashboardController->index();
+        $dashboardFilters = [
+            'range' => (string) ($_GET['range'] ?? '6m'),
+            'project' => $_GET['project'] ?? null,
+            'site' => $_GET['site'] ?? '',
+            'advisor' => $_GET['advisor'] ?? null,
+        ];
+        $dashboardData = $dashboardController->index($dashboardFilters);
+        $dashboardFiltersOptions = $dashboardData['filters'];
+        $dashboardKpis = $dashboardData['kpis'];
         $salesData = $dashboardData['salesData'];
         $recentSales = $dashboardData['recentSales'];
         $dashboardAlerts = $dashboardData['alerts'];
@@ -684,6 +724,22 @@ switch ($view) {
                 exit;
             }
 
+            if (!$isJsonRequest && $action === 'convert_to_client') {
+                try {
+                    $clientId = $leadController->convertToClient($payload, $advisorScopeUserId);
+                    $leadId = (int) $payload['id'];
+                    cms_audit($pdo, 'lead_convertido_en_cliente', 'leads', (string) $leadId, null, ['cliente_id' => $clientId]);
+                    $_SESSION['lead_feedback'] = 'Lead convertido en cliente correctamente.';
+                } catch (InvalidArgumentException $exception) {
+                    $_SESSION['lead_feedback'] = $exception->getMessage();
+                } catch (PDOException $exception) {
+                    error_log('[LeadController] ' . $exception->getMessage());
+                    $_SESSION['lead_feedback'] = 'No se pudo convertir el lead. Verifica que el documento no esté registrado.';
+                }
+                header('Location: ?view=crm', true, 303);
+                exit;
+            }
+
             if ($isJsonRequest) {
                 $respondJson(400, ['message' => 'La acción solicitada no es válida.']);
             }
@@ -718,6 +774,12 @@ switch ($view) {
         $inventoryStages = array_values(array_filter($projectData['stages'], static fn (array $stage): bool => (int) $stage['active'] === 1));
         $inventoryProjects = array_values(array_filter($inventoryProjects, static fn (array $project): bool => $project['status'] !== 'Archivado'));
         $unitStatuses = array_values($unitStatuses);
+        break;
+
+    case 'mapa':
+        require_once BASE_PATH . '/app/Models/MapaModel.php';
+        require_once BASE_PATH . '/app/Controllers/MapaController.php';
+        $mapaData = (new MapaController(new MapaModel($pdo)))->index($advisorScopeUserId);
         break;
 
     case 'proyectos':

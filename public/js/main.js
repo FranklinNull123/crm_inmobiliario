@@ -61,7 +61,10 @@
         const el = document.createElement(isLast ? 'span' : 'a');
         el.textContent = label;
         if (isLast) { el.className = 'font-medium text-slate-900 dark:text-white'; el.setAttribute('aria-current', 'page'); }
-        else { el.href = '#'; el.className = 'hover:text-brand-600 dark:hover:text-brand-400 ' + (i === 0 ? 'inline-flex items-center gap-1' : ''); }
+        else {
+          el.href = i === 0 ? '?view=dashboard' : (label === 'CRM' ? '?view=crm' : '#');
+          el.className = 'hover:text-brand-600 dark:hover:text-brand-400 ' + (i === 0 ? 'inline-flex items-center gap-1' : '');
+        }
         if (i === 0) el.insertAdjacentHTML('afterbegin', '<i data-lucide="home" class="h-3.5 w-3.5" aria-hidden="true"></i>');
         li.appendChild(el);
         ol.appendChild(li);

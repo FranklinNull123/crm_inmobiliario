@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 final class ConfiguracionModel
 {
+	private const MAX_AVATAR_DATA_URL_LENGTH = 2500000;
+
 	public function __construct(private readonly PDO $pdo)
 	{
 	}
@@ -123,11 +125,17 @@ final class ConfiguracionModel
 		if ($password !== null && $password !== '' && strlen($password) < 12) {
 			throw new InvalidArgumentException('La contraseña debe tener al menos 12 caracteres.');
 		}
-		if ($avatarDataUrl !== null && trim($avatarDataUrl) !== '' && !preg_match('/^data:image\/(png|jpeg|jpg|gif|webp);base64,/', $avatarDataUrl)) {
-			throw new InvalidArgumentException('La foto de perfil no tiene un formato válido.');
-		}
-		if ($avatarDataUrl !== null && trim($avatarDataUrl) !== '' && strlen($avatarDataUrl) > 50000) {
-			throw new InvalidArgumentException('La foto de perfil es demasiado grande. Elige una imagen más pequeña.');
+		$avatarDataUrl = trim((string) $avatarDataUrl);
+		if ($avatarDataUrl !== '') {
+			if (strlen($avatarDataUrl) > self::MAX_AVATAR_DATA_URL_LENGTH || !preg_match('/^data:image\/(png|jpeg|gif|webp);base64,(.+)$/s', $avatarDataUrl, $matches)) {
+				throw new InvalidArgumentException('La foto de perfil debe ser una imagen válida de hasta 2 MB.');
+			}
+			$imageBytes = base64_decode($matches[2], true);
+			$imageInfo = $imageBytes === false ? false : @getimagesizefromstring($imageBytes);
+			$allowedMimeTypes = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
+			if ($imageBytes === false || $imageInfo === false || !in_array($imageInfo['mime'] ?? '', $allowedMimeTypes, true)) {
+				throw new InvalidArgumentException('La foto de perfil debe ser una imagen válida de tipo PNG, JPG, GIF o WEBP.');
+			}
 		}
 
 		$emailNormalized = strtolower(trim($email));
@@ -139,7 +147,7 @@ final class ConfiguracionModel
 
 		$sql = 'UPDATE usuarios SET nombres = :name, email = :email';
 		$params = ['name' => trim($name), 'email' => strtolower(trim($email)), 'id' => $userId];
-		if ($avatarDataUrl !== null && trim($avatarDataUrl) !== '') {
+		if ($avatarDataUrl !== '') {
 			$sql .= ', avatar_url = :avatar_url';
 			$params['avatar_url'] = $avatarDataUrl;
 		}

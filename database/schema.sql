@@ -34,7 +34,7 @@ CREATE TABLE `usuarios` (
   `id_usuario` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `nombres` VARCHAR(100) NOT NULL,
   `email` VARCHAR(120) DEFAULT NULL,
-  `avatar_url` TEXT DEFAULT NULL,
+  `avatar_url` MEDIUMTEXT DEFAULT NULL,
   `estado` TINYINT(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id_usuario`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
